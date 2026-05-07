@@ -8,6 +8,12 @@ extern "C" {
 
 void setup();
 void loop();
+
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+#include "app/neopixel.hpp"
+extern Neopixel strip;
 #endif
