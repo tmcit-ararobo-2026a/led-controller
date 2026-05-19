@@ -6,14 +6,10 @@ extern "C" {
 
 #include "main.h"
 
+// C 言語に見せたい関数だけ
 void setup();
 void loop();
 
 #ifdef __cplusplus
 }
-#endif
-
-#ifdef __cplusplus
-#include "app/neopixel.hpp"
-extern Neopixel strip;
 #endif

@@ -26,8 +26,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <app/neopixel.hpp>
-
 #include "app/app.hpp"
 /* USER CODE END Includes */
 
@@ -155,12 +153,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-extern Neopixel strip;
 
-void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)
-{
-    strip.pulse_sent_callback(htim);
-}
 /* USER CODE END 4 */
 
 /**
