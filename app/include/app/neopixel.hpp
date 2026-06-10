@@ -111,5 +111,5 @@ public:
      */
     void pulse_sent_callback(TIM_HandleTypeDef* htim);
 
-    void LED_setup();
+    void LED_setup();  // ←これなにも書かれてない　6/08時点　
 };

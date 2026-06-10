@@ -63,7 +63,6 @@ void Neopixel::clear()
 void Neopixel::fill(uint8_t r, uint8_t g, uint8_t b)
 {
     for (uint8_t i = 0; i < num_pixels; i++) {
-        pixels[i][0] = g;
         pixels[i][1] = r;
         pixels[i][2] = b;
     }
@@ -184,4 +183,26 @@ void Neopixel::gradually_dark()
         // 光らせる
         fill(led_r, led_g, led_b);
     }
+}
+
+void Neopixel::LED_setup()
+{
+    for (int i = 0; i < num_pixels; i++) {
+        pixels[i][0] = 0;  // G
+        pixels[i][1] = 0;  // R
+        pixels[i][2] = 0;  // B
+    }
+
+    int pwm_len = num_pixels * 24 + 50;
+    for (int i = 0; i < pwm_len; i++) {
+        pwm_data[i] = 0;
+    }
+
+    shine_flag    = true;
+    dark_flag     = false;
+    led_num       = 0;
+    led_num_shine = 0;
+    led_r = led_g = led_b = 0;
+
+    show();
 }
