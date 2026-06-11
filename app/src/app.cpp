@@ -12,8 +12,6 @@ void setup()
 }
 void loop()
 {
-    strip.gradually_shine(255, 0, 0);
-    strip.show();
     strip.fill(255, 0, 0);
     strip.show();
     HAL_Delay(30);
