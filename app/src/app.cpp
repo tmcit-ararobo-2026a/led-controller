@@ -16,6 +16,7 @@ void loop()
     strip.show();
     HAL_Delay(30);
 }
+
 extern "C" {
 
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)

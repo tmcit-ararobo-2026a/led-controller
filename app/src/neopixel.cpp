@@ -63,6 +63,7 @@ void Neopixel::clear()
 void Neopixel::fill(uint8_t r, uint8_t g, uint8_t b)
 {
     for (uint8_t i = 0; i < num_pixels; i++) {
+        pixels[i][0] = g;
         pixels[i][1] = r;
         pixels[i][2] = b;
     }
