@@ -12,7 +12,7 @@ void setup()
 }
 void loop()
 {
-    strip.fill(255, 0, 0);
+    strip.fill(0, 0, 0);
     strip.show();
     HAL_Delay(30);
 }
