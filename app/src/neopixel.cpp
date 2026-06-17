@@ -32,7 +32,8 @@ bool Neopixel::show()
     uint32_t color;
 
     for (int i = 0; i < num_pixels; i++) {
-        color = (pixels[i][0] << 16) | (pixels[i][1] << 8) | pixels[i][2] << 0;  // GRB順で24ビットのカラー値を作成
+        color = (pixels[i][0] << 16) | (pixels[i][1] << 8) |
+                pixels[i][2] << 0;  // GRB順で24ビットのカラー値を作成
         for (int i = 23; i >= 0; i--) {
             if (color & (1 << i)) {
                 pwm_data[index] = high_pulse;  // 1のビットは高いパルス

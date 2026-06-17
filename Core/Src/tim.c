@@ -43,7 +43,7 @@ void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 63;
+  htim2.Init.Prescaler = 143;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 19999;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -88,6 +88,7 @@ void MX_TIM15_Init(void)
 
   /* USER CODE END TIM15_Init 0 */
 
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
   TIM_OC_InitTypeDef sConfigOC = {0};
   TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
@@ -96,12 +97,21 @@ void MX_TIM15_Init(void)
 
   /* USER CODE END TIM15_Init 1 */
   htim15.Instance = TIM15;
-  htim15.Init.Prescaler = 0;
+  htim15.Init.Prescaler = 1;
   htim15.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim15.Init.Period = 59;
+  htim15.Init.Period = 89;
   htim15.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim15.Init.RepetitionCounter = 0;
   htim15.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim15) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim15, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
   if (HAL_TIM_PWM_Init(&htim15) != HAL_OK)
   {
     Error_Handler();
@@ -156,7 +166,12 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* tim_pwmHandle)
 
   /* USER CODE END TIM2_MspInit 1 */
   }
-  else if(tim_pwmHandle->Instance==TIM15)
+}
+
+void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
+{
+
+  if(tim_baseHandle->Instance==TIM15)
   {
   /* USER CODE BEGIN TIM15_MspInit 0 */
 
@@ -180,8 +195,11 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* tim_pwmHandle)
       Error_Handler();
     }
 
-    __HAL_LINKDMA(tim_pwmHandle,hdma[TIM_DMA_ID_CC1],hdma_tim15_ch1);
+    __HAL_LINKDMA(tim_baseHandle,hdma[TIM_DMA_ID_CC1],hdma_tim15_ch1);
 
+    /* TIM15 interrupt Init */
+    HAL_NVIC_SetPriority(TIM1_BRK_TIM15_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(TIM1_BRK_TIM15_IRQn);
   /* USER CODE BEGIN TIM15_MspInit 1 */
 
   /* USER CODE END TIM15_MspInit 1 */
@@ -251,7 +269,12 @@ void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* tim_pwmHandle)
 
   /* USER CODE END TIM2_MspDeInit 1 */
   }
-  else if(tim_pwmHandle->Instance==TIM15)
+}
+
+void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
+{
+
+  if(tim_baseHandle->Instance==TIM15)
   {
   /* USER CODE BEGIN TIM15_MspDeInit 0 */
 
@@ -260,7 +283,10 @@ void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* tim_pwmHandle)
     __HAL_RCC_TIM15_CLK_DISABLE();
 
     /* TIM15 DMA DeInit */
-    HAL_DMA_DeInit(tim_pwmHandle->hdma[TIM_DMA_ID_CC1]);
+    HAL_DMA_DeInit(tim_baseHandle->hdma[TIM_DMA_ID_CC1]);
+
+    /* TIM15 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(TIM1_BRK_TIM15_IRQn);
   /* USER CODE BEGIN TIM15_MspDeInit 1 */
 
   /* USER CODE END TIM15_MspDeInit 1 */
