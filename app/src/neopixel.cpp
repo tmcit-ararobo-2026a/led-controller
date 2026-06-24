@@ -6,7 +6,7 @@ Neopixel::Neopixel(TIM_HandleTypeDef* htim, uint16_t channel, int num_pixels)
     : htim(htim), channel(channel), num_pixels(num_pixels)
 {
     pixels   = new uint8_t[num_pixels][3];
-    pwm_data = new uint16_t[num_pixels * 24 + 50];
+    pwm_data = new uint16_t[num_pixels * 24 + 250];
     for (int i = 0; i < num_pixels; i++) {
         pixels[i][0] = 0;  // G
         pixels[i][1] = 0;  // R
@@ -44,8 +44,8 @@ bool Neopixel::show()
         }
     }
 
-    for (int i = 0; i < 50; i++) {
-        pwm_data[index++] = 0;  // 50個の0パルスを追加
+    for (int i = 0; i < 250; i++) {
+        pwm_data[index++] = 0;  // 250個の0パルスを追加
     }
 
     HAL_TIM_PWM_Start_DMA(htim, channel, (uint32_t*)pwm_data, index);
