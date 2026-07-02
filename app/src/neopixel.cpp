@@ -195,7 +195,7 @@ void Neopixel::LED_setup()
         pixels[i][2] = 0;  // B
     }
 
-    int pwm_len = num_pixels * 24 + 50;
+    int pwm_len = num_pixels * 24 + 250;
     for (int i = 0; i < pwm_len; i++) {
         pwm_data[i] = 0;
     }

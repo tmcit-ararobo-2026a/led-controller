@@ -14,8 +14,8 @@ private:
     uint8_t (*pixels)[3];         // LEDの色(GRB:0~255)
     uint16_t* pwm_data;           // PWM波形のパルス幅データ
     bool data_sent      = false;  // データが送信済みかどうか
-    uint16_t high_pulse = 3;      // 1を送信するときのパルス幅
-    uint16_t low_pulse  = 1;      // 0を送信するときのパルス幅
+    uint16_t high_pulse = 3;      // 3を送信するときのパルス幅
+    uint16_t low_pulse  = 1;      // 1を送信するときのパルス幅
     uint8_t led_num;
     uint8_t led_num_shine;
 
