@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(app STATIC
     src/app.cpp
+    src/neopixel.cpp
 )
 
 target_include_directories(app PUBLIC
