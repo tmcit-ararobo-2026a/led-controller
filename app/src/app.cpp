@@ -13,15 +13,15 @@ void setup()
 void loop()
 {
     HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
-    strip.fill(255, 0, 0);
-    strip.show();
-    HAL_Delay(2000);
-    strip.fill(0, 255, 0);
-    strip.show();
-    HAL_Delay(2000);
     strip.fill(0, 0, 255);
     strip.show();
-    HAL_Delay(2000);
+    HAL_Delay(1000);
+    strip.fill(0, 255, 0);
+    strip.show();
+    HAL_Delay(1000);
+    strip.fill(255, 0, 0);
+    strip.show();
+    HAL_Delay(1000);
 }
 
 extern "C" {

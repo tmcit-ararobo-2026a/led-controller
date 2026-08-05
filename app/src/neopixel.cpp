@@ -25,6 +25,7 @@ bool Neopixel::show()
 {
     if (data_sent) {
         data_sent = false;  // 送信が完了したらフラグをリセット
+        HAL_TIM_PWM_Stop_DMA(htim, channel);
     } else {
         return false;  // 前回の送信が完了していない場合はfalseを返す
     }
@@ -34,7 +35,7 @@ bool Neopixel::show()
     for (int i = 0; i < num_pixels; i++) {
         color = (pixels[i][0] << 16) | (pixels[i][1] << 8) |
                 pixels[i][2] << 0;  // GRB順で24ビットのカラー値を作成
-        for (int i = 0; i < 24; i++) {
+        for (int i = 23; i >= 0; i--) {
             if (color & (1 << i)) {
                 pwm_data[index] = high_pulse;  // 1のビットは高いパルス
             } else {
@@ -82,7 +83,6 @@ void Neopixel::set_pixel_color(uint8_t pixel, uint8_t r, uint8_t g, uint8_t b)
 void Neopixel::pulse_sent_callback(TIM_HandleTypeDef* htim)
 {
     if (htim->Instance == this->htim->Instance) {
-        HAL_TIM_PWM_Stop_DMA(htim, channel);
         data_sent = true;
     }
 }
