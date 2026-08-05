@@ -22,6 +22,18 @@ void loop()
     strip.fill(255, 0, 0);
     strip.show();
     HAL_Delay(1000);
+    strip.fill(255, 0, 255);
+    strip.show();
+    HAL_Delay(1000);
+    strip.fill(255, 255, 0);
+    strip.show();
+    HAL_Delay(1000);
+    strip.fill(0, 255, 255);
+    strip.show();
+    HAL_Delay(1000);
+    strip.fill(255, 255, 255);
+    strip.show();
+    HAL_Delay(1000);
 }
 
 extern "C" {
