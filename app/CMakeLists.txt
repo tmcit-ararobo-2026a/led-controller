@@ -7,7 +7,7 @@ add_library(app STATIC
     src/app.cpp
     src/fdcan_driver.cpp
     src/neopixel.cpp
-    ${CMAKE_SOURCE_DIR}/gn10-can/drivers/stm32_fdcan/driver_stm32_fdcan.cpp
+    ${CMAKE_SOURCE_DIR}/gn10_can/drivers/stm32_fdcan/driver_stm32_fdcan.cpp
 
 )
 

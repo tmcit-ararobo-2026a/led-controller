@@ -7,7 +7,6 @@ Neopixel strip(&htim15, TIM_CHANNEL_1, 120);
 
 void setup()
 {
-    HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, GPIO_PIN_SET);
     strip.LED_setup();
 }
 void loop()

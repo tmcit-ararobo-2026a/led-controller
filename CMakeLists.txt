@@ -36,7 +36,7 @@ add_executable(${CMAKE_PROJECT_NAME})
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
-add_subdirectory(gn10-can)
+add_subdirectory(gn10_can)
 add_subdirectory(app)
 
 # Link directories setup
