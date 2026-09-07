@@ -37,6 +37,7 @@ add_executable(${CMAKE_PROJECT_NAME})
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
 add_subdirectory(gn10_can)
+add_subdirectory(gn10-stm32-fdcan-driver)
 add_subdirectory(app)
 
 # Link directories setup
@@ -67,5 +68,6 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
     app
     gn10_can
+    gn10_stm32_fdcan_driver
     # Add user defined libraries
 )
