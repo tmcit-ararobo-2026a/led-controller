@@ -1,6 +1,7 @@
 #include "app/app.hpp"
 
 #include "app/neopixel.hpp"
+#include "gn10_can/devices/led_server.hpp"
 #include "tim.h"
 
 Neopixel strip(&htim15, TIM_CHANNEL_1, 120);
