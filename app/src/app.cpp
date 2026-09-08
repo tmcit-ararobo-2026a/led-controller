@@ -10,6 +10,7 @@
 
 gn10_can::drivers::FDCANDriver fdcan1_driver(&hfdcan1);
 gn10_can::FDCANBus fdcan1_bus(fdcan1_driver);
+gn10_can::devices::LEDServer<LEDInfo> led_server(fdcan1_bus, 2);
 
 Neopixel strip1(&htim15, TIM_CHANNEL_1, 120);
 
@@ -28,6 +29,17 @@ void update_heartbeat_led()
     }
 }
 
+void update_led(LEDInfo& info)
+{
+    /*air*/
+    if (info.air_injection) {
+        strip1.set_pixel_color(0, 120, 0, 0, 0);
+    } else {
+        strip1.set_pixel_color(0, 120, 0, 90, 90);
+    }
+    strip1.show();
+}
+
 void setup()
 {
     fdcan1_driver.init();
@@ -37,6 +49,9 @@ void setup()
 
 void loop()
 {
+    if (led_server.get_information(led_info_)) {
+        update_led(led_info_);
+    }
     strip1.show();
     update_heartbeat_led();
 }
