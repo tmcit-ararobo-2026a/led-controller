@@ -71,12 +71,16 @@ void Neopixel::fill(uint8_t r, uint8_t g, uint8_t b)
     }
 }
 
-void Neopixel::set_pixel_color(uint8_t pixel, uint8_t r, uint8_t g, uint8_t b)
+void Neopixel::set_pixel_color(
+    uint8_t min_pixel, uint8_t max_pixel, uint8_t r, uint8_t g, uint8_t b
+)
 {
-    if (pixel < num_pixels) {
-        pixels[pixel][0] = g;
-        pixels[pixel][1] = r;
-        pixels[pixel][2] = b;
+    if (max_pixel < num_pixels && min_pixel <= max_pixel) {
+        for (uint8_t i = min_pixel; i <= max_pixel; i++) {
+            pixels[i][0] = g;
+            pixels[i][1] = r;
+            pixels[i][2] = b;
+        }
     }
 }
 
@@ -101,19 +105,23 @@ void Neopixel::flash_sky_tree(
     // init
     if (max_pixel + pixel_animation_sum == led_num) {
         led_num = min_pixel;
-        set_pixel_color(max_pixel, 0, 0, 0);
+        set_pixel_color(max_pixel, max_pixel, 0, 0, 0);
     }
 
     // 全体を暗く光らせる
     fill(r / 80, g / 80, b / 80);
+
     if (min_pixel <= led_num && led_num <= max_pixel + pixel_animation_sum) {
         int div = 1;
         for (int pixel_num = 0;
              min_pixel <= led_num - pixel_num && pixel_num <= pixel_animation_sum;
              pixel_num++) {
-            for (int i = 0; i <= 3; i++) {
-                set_pixel_color(led_num - pixel_num, r / div, g / div, b / div);
-            }
+            uint8_t tail_max = led_num - pixel_num;
+            uint8_t tail_min = (tail_max >= 3) ? tail_max - 3 : 0;
+            if (tail_min < min_pixel) tail_min = min_pixel;
+
+            set_pixel_color(tail_min, tail_max, r / div, g / div, b / div);
+
             div++;
         }
     }
@@ -121,9 +129,10 @@ void Neopixel::flash_sky_tree(
     led_num++;
 }
 
-void Neopixel::gradually_shine(uint8_t r, uint8_t g, uint8_t b)
+void Neopixel::gradually_shine(
+    uint8_t min_pixel, uint8_t max_pixel, uint8_t r, uint8_t g, uint8_t b
+)
 {
-    // LED
     if (shine_flag) {
         if (led_r + 10 >= r) {
             led_r = r;
@@ -148,19 +157,15 @@ void Neopixel::gradually_shine(uint8_t r, uint8_t g, uint8_t b)
             shine_flag = false;
             dark_flag  = true;
         }
-        // 光らせる
 
-        fill(led_r, led_g, led_b);
+        // 光らせる（範囲指定）
+        set_pixel_color(min_pixel, max_pixel, led_r, led_g, led_b);
     }
 }
 
-// gradually_shineとセットで必ず使って下さい
-
-void Neopixel::gradually_dark()
-
+void Neopixel::gradually_dark(uint8_t min_pixel, uint8_t max_pixel)
 {
     if (dark_flag) {
-        // LED
         if (0 <= led_r - 10) {
             led_r = led_r - 10;
         } else {
@@ -182,8 +187,9 @@ void Neopixel::gradually_dark()
             shine_flag = true;
             dark_flag  = false;
         }
-        // 光らせる
-        fill(led_r, led_g, led_b);
+
+        // 光らせる（範囲指定）
+        set_pixel_color(min_pixel, max_pixel, led_r, led_g, led_b);
     }
 }
 

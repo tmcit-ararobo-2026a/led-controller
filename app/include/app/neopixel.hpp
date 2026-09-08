@@ -71,7 +71,7 @@ public:
      * @param g 緑色成分（0-255）
      * @param b 青色成分（0-255）
      */
-    void set_pixel_color(uint8_t pixel, uint8_t r, uint8_t g, uint8_t b);
+    void set_pixel_color(uint8_t min_pixel, uint8_t max_pixel, uint8_t r, uint8_t g, uint8_t b);
 
     /**
      * @brief LEDを東京スカイツリーみたいに光らせる
@@ -100,9 +100,9 @@ public:
      * @param g 緑色成分（0-255）
      * @param b 青色成分（0-255）
      */
-    void gradually_shine(uint8_t r, uint8_t g, uint8_t b);
+    void gradually_shine(uint8_t min_pixel, uint8_t max_pixel, uint8_t r, uint8_t g, uint8_t b);
 
-    void gradually_dark();
+    void gradually_dark(uint8_t min_pixel, uint8_t max_pixel);
 
     /**
      * @brief PWM信号が送信されたときのコールバック

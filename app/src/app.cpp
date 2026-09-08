@@ -8,46 +8,44 @@
 #include "gn10_stm32_fdcan_driver/fdcan_driver.hpp"
 #include "tim.h"
 
-Neopixel strip(&htim15, TIM_CHANNEL_1, 120);
 gn10_can::drivers::FDCANDriver fdcan1_driver(&hfdcan1);
 gn10_can::FDCANBus fdcan1_bus(fdcan1_driver);
-gn10_can::devices::LEDServer<LedInfo> led_server(fdcan1_bus, 2);
+
+Neopixel strip1(&htim15, TIM_CHANNEL_1, 120);
+
+constexpr uint32_t HEARTBEAT_TOGGLE_INTERVAL_MS = 500;
+uint32_t heartbeat_last_toggle_time_ms          = 0;
+
+/**
+ * @brief 一定周期のLEDトグル
+ */
+void update_heartbeat_led()
+{
+    const uint32_t now_ms = HAL_GetTick();
+    if ((now_ms - heartbeat_last_toggle_time_ms) >= HEARTBEAT_TOGGLE_INTERVAL_MS) {
+        heartbeat_last_toggle_time_ms = now_ms;
+        HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
+    }
+}
 
 void setup()
 {
-    strip.LED_setup();
+    fdcan1_driver.init();
+    strip1.LED_setup();
+    heartbeat_last_toggle_time_ms = HAL_GetTick();
 }
+
 void loop()
 {
-    HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
-    strip.fill(0, 0, 255);
-    strip.show();
-    HAL_Delay(1000);
-    strip.fill(0, 255, 0);
-    strip.show();
-    HAL_Delay(1000);
-    strip.fill(255, 0, 0);
-    strip.show();
-    HAL_Delay(1000);
-    strip.fill(255, 0, 255);
-    strip.show();
-    HAL_Delay(1000);
-    strip.fill(255, 255, 0);
-    strip.show();
-    HAL_Delay(1000);
-    strip.fill(0, 255, 255);
-    strip.show();
-    HAL_Delay(1000);
-    strip.fill(255, 255, 255);
-    strip.show();
-    HAL_Delay(1000);
+    strip1.show();
+    update_heartbeat_led();
 }
 
 extern "C" {
 
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)
 {
-    strip.pulse_sent_callback(htim);
+    strip1.pulse_sent_callback(htim);
 }
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo0ITs)
 {
