@@ -1,0 +1,12 @@
+#pragma once
+#include <array>
+
+struct LEDInformation {
+    /*ベルト直動*/
+    bool belt_initialization{};  // true:打てます！！ false:初期化未完了
+    float belt_velocity{};
+    /*エアー射出*/
+    bool air_injection{};
+    /*電圧*/
+    std::array<float, 3> battery_voltage{};  // 0,1:logic 2:drive
+} __attribute__((__packed__));
