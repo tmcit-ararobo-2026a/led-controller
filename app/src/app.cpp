@@ -15,8 +15,8 @@ gn10_can::devices::LEDServer<LEDInformation> led_server(fdcan1_bus, 2);
 // LED受信構造体
 LEDInformation led_info;
 
-Neopixel behind(&htim15, TIM_CHANNEL_1, 120);
-Neopixel front(&htim2, TIM_CHANNEL_1, 75);
+Neopixel front(&htim15, TIM_CHANNEL_1, 120);
+Neopixel behind(&htim2, TIM_CHANNEL_1, 121);
 
 constexpr uint32_t HEARTBEAT_TOGGLE_INTERVAL_MS = 500;
 uint32_t heartbeat_last_toggle_time_ms          = 0;
@@ -36,7 +36,6 @@ void update_heartbeat_led()
 
 void update_led(LEDInformation& led_info)
 {
-    /* air */
     if (led_info.air_injection) {
         front.set_pixel_color(0, 120, 0, 0, 0);
     } else {
@@ -119,20 +118,11 @@ void setup()
 bool get_command = false;
 void loop()
 {
-    if (!get_command) {
-        front.gradually_shine(0, 120, 0, 0, 120);
-        front.gradually_dark(0, 120);
+    update_led(led_info);
 
-        behind.gradually_shine(0, 120, 0, 0, 120);
-        behind.gradually_dark(0, 120);
-    }
-
-    if (led_server.get_information(led_info)) {
-        update_led(led_info);
-    }
     behind.show();
     front.show();
-    HAL_Delay(100);
+    HAL_Delay(1000);
     update_heartbeat_led();
 }
 
