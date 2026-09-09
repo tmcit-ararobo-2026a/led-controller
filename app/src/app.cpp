@@ -115,7 +115,6 @@ void setup()
     heartbeat_last_toggle_time_ms = HAL_GetTick();
 }
 
-bool get_command = false;
 void loop()
 {
     update_led(led_info);
