@@ -15,8 +15,8 @@ gn10_can::devices::LEDServer<LEDInformation> led_server(fdcan1_bus, 2);
 // LED受信構造体
 LEDInformation led_info;
 
-Neopixel front(&htim15, TIM_CHANNEL_1, 120);
-Neopixel behind(&htim2, TIM_CHANNEL_1, 121);
+Neopixel behind(&htim15, TIM_CHANNEL_1, 120);
+Neopixel front(&htim2, TIM_CHANNEL_1, 121);
 
 constexpr uint32_t HEARTBEAT_TOGGLE_INTERVAL_MS = 500;
 uint32_t heartbeat_last_toggle_time_ms          = 0;
