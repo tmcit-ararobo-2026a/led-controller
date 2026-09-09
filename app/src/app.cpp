@@ -12,7 +12,8 @@ gn10_can::drivers::FDCANDriver fdcan1_driver(&hfdcan1);
 gn10_can::FDCANBus fdcan1_bus(fdcan1_driver);
 gn10_can::devices::LEDServer<LEDInfo> led_server(fdcan1_bus, 2);
 
-Neopixel strip1(&htim15, TIM_CHANNEL_1, 120);
+Neopixel behind(&htim15, TIM_CHANNEL_1, 120);
+Neopixel front(&htim2, TIM_CHANNEL_1, 75);
 
 constexpr uint32_t HEARTBEAT_TOGGLE_INTERVAL_MS = 500;
 uint32_t heartbeat_last_toggle_time_ms          = 0;
@@ -25,6 +26,7 @@ void update_heartbeat_led()
     const uint32_t now_ms = HAL_GetTick();
     if ((now_ms - heartbeat_last_toggle_time_ms) >= HEARTBEAT_TOGGLE_INTERVAL_MS) {
         heartbeat_last_toggle_time_ms = now_ms;
+
         HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
     }
 }
@@ -33,17 +35,20 @@ void update_led(LEDInfo& info)
 {
     /*air*/
     if (info.air_injection) {
-        strip1.set_pixel_color(0, 120, 0, 0, 0);
+        behind.set_pixel_color(0, 120, 0, 0, 0);
     } else {
-        strip1.set_pixel_color(0, 120, 0, 90, 90);
+        behind.set_pixel_color(0, 120, 0, 90, 90);
     }
-    strip1.show();
+
+    /*voltage*/
+
+    behind.show();
 }
 
 void setup()
 {
     fdcan1_driver.init();
-    strip1.LED_setup();
+    behind.LED_setup();
     heartbeat_last_toggle_time_ms = HAL_GetTick();
 }
 
@@ -52,7 +57,7 @@ void loop()
     if (led_server.get_information(led_info_)) {
         update_led(led_info_);
     }
-    strip1.show();
+    behind.show();
     update_heartbeat_led();
 }
 
@@ -60,7 +65,7 @@ extern "C" {
 
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)
 {
-    strip1.pulse_sent_callback(htim);
+    behind.pulse_sent_callback(htim);
 }
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo0ITs)
 {

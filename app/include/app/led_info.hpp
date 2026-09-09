@@ -9,7 +9,7 @@ struct LEDInfo {
     bool air_injection;  // true:injection false:not injection
 
     /*電圧*/
-    uint8_t control_batt1;
-    uint8_t control_batt2;
-    uint8_t drive_batt;
+    float logic_battery_voltages1;
+    float logic_battery_voltages2;
+    uint8_t drive_battery_voltage;
 } led_info_ __attribute__((__packed__));
