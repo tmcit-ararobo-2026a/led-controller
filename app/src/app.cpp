@@ -30,7 +30,7 @@ void update_heartbeat_led()
     if ((now_ms - heartbeat_last_toggle_time_ms) >= HEARTBEAT_TOGGLE_INTERVAL_MS) {
         heartbeat_last_toggle_time_ms = now_ms;
 
-        HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
+        HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
     }
 }
 
@@ -129,8 +129,6 @@ void loop()
 
     if (led_server.get_information(led_info)) {
         update_led(led_info);
-
-        get_command = true;
     }
     behind.show();
     front.show();
