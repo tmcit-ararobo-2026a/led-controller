@@ -116,13 +116,25 @@ void setup()
     heartbeat_last_toggle_time_ms = HAL_GetTick();
 }
 
+bool get_command = false;
 void loop()
 {
+    if (!get_command) {
+        front.gradually_shine(0, 120, 0, 0, 120);
+        front.gradually_dark(0, 120);
+
+        behind.gradually_shine(0, 120, 0, 0, 120);
+        behind.gradually_dark(0, 120);
+    }
+
     if (led_server.get_information(led_info)) {
         update_led(led_info);
+
+        get_command = true;
     }
     behind.show();
     front.show();
+    HAL_Delay(100);
     update_heartbeat_led();
 }
 
@@ -131,6 +143,7 @@ extern "C" {
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)
 {
     behind.pulse_sent_callback(htim);
+    front.pulse_sent_callback(htim);
 }
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo0ITs)
 {
