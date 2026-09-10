@@ -118,7 +118,9 @@ void setup()
 
 void loop()
 {
-    update_led(led_info);
+    if (led_server.get_information(led_info)) {
+        update_led(led_info);
+    }
 
     behind.show();
     front.show();
