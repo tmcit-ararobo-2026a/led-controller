@@ -3,6 +3,7 @@
 #include "app/led_information.hpp"
 #include "app/neopixel_16bit.hpp"
 #include "app/neopixel_32bit.hpp"
+#include "app/robot_config.hpp"
 #include "fdcan.h"
 #include "gn10_can/devices/led_server.hpp"
 #include "gn10_stm32_fdcan_driver/can_callback_helper.hpp"
@@ -11,13 +12,16 @@
 
 gn10_can::drivers::FDCANDriver fdcan1_driver(&hfdcan1);
 gn10_can::FDCANBus fdcan1_bus(fdcan1_driver);
-gn10_can::devices::LEDServer<LEDInformation> led_server(fdcan1_bus, 2);
+gn10_can::devices::LEDServer<LEDInformation> led_server_info(fdcan1_bus, 2);
+gn10_can::devices::LEDServer<robot_config::command_t> led_ser1ver_command(fdcan1_bus, 1);
 
 // LED受信構造体
 LEDInformation led_info;
+robot_config::command_t led_command;
 
 Neopixel16bit behind(&htim15, TIM_CHANNEL_1, 120);
 Neopixel32bit front(&htim2, TIM_CHANNEL_4, 121);
+Neopixel32bit localization(&htim2, TIM_CHANNEL_2, 28);
 
 constexpr uint32_t HEARTBEAT_TOGGLE_INTERVAL_MS = 500;
 uint32_t heartbeat_last_toggle_time_ms          = 0;
@@ -31,11 +35,11 @@ void update_heartbeat_led()
     if ((now_ms - heartbeat_last_toggle_time_ms) >= HEARTBEAT_TOGGLE_INTERVAL_MS) {
         heartbeat_last_toggle_time_ms = now_ms;
 
-        HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
+        // HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
     }
 }
 
-void update_led(LEDInformation& led_info)
+void update_led_info(LEDInformation& led_info)
 {
     if (led_info.air_injection) {
         front.set_pixel_color(0, 120, 60, 60, 0);
@@ -126,21 +130,28 @@ void update_led(LEDInformation& led_info)
     }
 }
 
+void update_led_command(robot_config::command_t& command) {}
+
 void setup()
 {
     fdcan1_driver.init();
     behind.LED_setup();
     front.LED_setup();
+    localization.LED_setup();
     heartbeat_last_toggle_time_ms = HAL_GetTick();
 }
 
 void loop()
 {
-    if (led_server.get_information(led_info)) {
-        update_led(led_info);
+    if (led_server_info.get_information(led_info)) {
+        update_led_info(led_info);
         HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
     }
-
+    if (led_ser1ver_command.get_information(led_command)) {
+        update_led_command(led_command);
+        HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
+    }
+    localization.show();
     behind.show();
     front.show();
     HAL_Delay(10);
