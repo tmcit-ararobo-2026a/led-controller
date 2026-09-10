@@ -1,12 +1,12 @@
-#include "app/neopixel.hpp"
+#include "app/neopixel_32bit.hpp"
 
 // 徐々に暗くなるプログラムも組む予定です
 
-Neopixel::Neopixel(TIM_HandleTypeDef* htim, uint16_t channel, int num_pixels)
+Neopixel32bit::Neopixel32bit(TIM_HandleTypeDef* htim, uint16_t channel, int num_pixels)
     : htim(htim), channel(channel), num_pixels(num_pixels)
 {
     pixels   = new uint8_t[num_pixels][3];
-    pwm_data = new uint16_t[num_pixels * 24 + 500];
+    pwm_data = new uint32_t[num_pixels * 24 + 500];
     for (int i = 0; i < num_pixels; i++) {
         pixels[i][0] = 0;  // G
         pixels[i][1] = 0;  // R
@@ -15,13 +15,13 @@ Neopixel::Neopixel(TIM_HandleTypeDef* htim, uint16_t channel, int num_pixels)
     data_sent = true;
 }
 
-Neopixel::~Neopixel()
+Neopixel32bit::~Neopixel32bit()
 {
     delete[] pixels;
     delete[] pwm_data;
 }
 
-bool Neopixel::show()
+bool Neopixel32bit::show()
 {
     if (data_sent) {
         data_sent = false;  // 送信が完了したらフラグをリセット
@@ -53,7 +53,7 @@ bool Neopixel::show()
     return true;
 }
 
-void Neopixel::clear()
+void Neopixel32bit::clear()
 {
     for (uint8_t i = 0; i < num_pixels; i++) {
         pixels[i][0] = 0;
@@ -62,7 +62,7 @@ void Neopixel::clear()
     }
 }
 
-void Neopixel::fill(uint8_t r, uint8_t g, uint8_t b)
+void Neopixel32bit::fill(uint8_t r, uint8_t g, uint8_t b)
 {
     for (uint8_t i = 0; i < num_pixels; i++) {
         pixels[i][0] = g;
@@ -71,7 +71,7 @@ void Neopixel::fill(uint8_t r, uint8_t g, uint8_t b)
     }
 }
 
-void Neopixel::set_pixel_color(
+void Neopixel32bit::set_pixel_color(
     uint8_t min_pixel, uint8_t max_pixel, uint8_t r, uint8_t g, uint8_t b
 )
 {
@@ -84,7 +84,7 @@ void Neopixel::set_pixel_color(
     }
 }
 
-void Neopixel::pulse_sent_callback(TIM_HandleTypeDef* htim)
+void Neopixel32bit::pulse_sent_callback(TIM_HandleTypeDef* htim)
 {
     if (htim->Instance == this->htim->Instance) {
         data_sent = true;
@@ -93,7 +93,7 @@ void Neopixel::pulse_sent_callback(TIM_HandleTypeDef* htim)
 
 // 記憶用フラグ
 
-void Neopixel::flash_sky_tree(
+void Neopixel32bit::flash_sky_tree(
     uint8_t min_pixel,
     uint8_t pixel_animation_sum,
     uint8_t max_pixel,
@@ -129,7 +129,7 @@ void Neopixel::flash_sky_tree(
     led_num++;
 }
 
-void Neopixel::gradually_shine(
+void Neopixel32bit::gradually_shine(
     uint8_t min_pixel, uint8_t max_pixel, uint8_t r, uint8_t g, uint8_t b
 )
 {
@@ -163,7 +163,7 @@ void Neopixel::gradually_shine(
     }
 }
 
-void Neopixel::gradually_dark(uint8_t min_pixel, uint8_t max_pixel)
+void Neopixel32bit::gradually_dark(uint8_t min_pixel, uint8_t max_pixel)
 {
     if (dark_flag) {
         if (0 <= led_r - 10) {
@@ -193,7 +193,7 @@ void Neopixel::gradually_dark(uint8_t min_pixel, uint8_t max_pixel)
     }
 }
 
-void Neopixel::LED_setup()
+void Neopixel32bit::LED_setup()
 {
     for (int i = 0; i < num_pixels; i++) {
         pixels[i][0] = 0;  // G

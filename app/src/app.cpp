@@ -1,7 +1,8 @@
 #include "app/app.hpp"
 
 #include "app/led_information.hpp"
-#include "app/neopixel.hpp"
+#include "app/neopixel_16bit.hpp"
+#include "app/neopixel_32bit.hpp"
 #include "fdcan.h"
 #include "gn10_can/devices/led_server.hpp"
 #include "gn10_stm32_fdcan_driver/can_callback_helper.hpp"
@@ -15,8 +16,8 @@ gn10_can::devices::LEDServer<LEDInformation> led_server(fdcan1_bus, 2);
 // LED受信構造体
 LEDInformation led_info;
 
-Neopixel behind(&htim15, TIM_CHANNEL_1, 120);
-Neopixel front(&htim2, TIM_CHANNEL_1, 121);
+Neopixel16bit behind(&htim15, TIM_CHANNEL_1, 120);
+Neopixel32bit front(&htim2, TIM_CHANNEL_4, 121);
 
 constexpr uint32_t HEARTBEAT_TOGGLE_INTERVAL_MS = 500;
 uint32_t heartbeat_last_toggle_time_ms          = 0;

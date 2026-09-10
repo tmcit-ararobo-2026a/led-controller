@@ -5,7 +5,7 @@
 #define LED_over_pixel  160
 #define LED_under_pixel 120
 
-class Neopixel
+class Neopixel16bit
 {
 private:
     TIM_HandleTypeDef* htim;      // タイマーのハンドラ
@@ -35,12 +35,12 @@ public:
      * @param channel チャンネル（TIM_CHANNEL_1, TIM_CHANNEL_2, ...）
      * @param num_pixels 使用するLEDの最大数
      */
-    Neopixel(TIM_HandleTypeDef* htim, uint16_t channel, int num_pixels);
+    Neopixel16bit(TIM_HandleTypeDef* htim, uint16_t channel, int num_pixels);
 
     /**
      * @brief Neopixelクラスのデストラクタ
      */
-    ~Neopixel();
+    ~Neopixel16bit();
 
     /**
      * @brief LEDのデータを送信する
