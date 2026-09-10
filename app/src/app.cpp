@@ -38,7 +38,7 @@ void update_heartbeat_led()
 void update_led(LEDInformation& led_info)
 {
     if (led_info.air_injection) {
-        front.set_pixel_color(0, 120, 60, 0, 0);
+        front.set_pixel_color(0, 120, 60, 60, 0);
     } else {
         front.set_pixel_color(0, 120, 0, 60, 60);
     }
