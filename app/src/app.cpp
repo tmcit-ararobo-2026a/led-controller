@@ -43,35 +43,47 @@ void update_led(LEDInformation& led_info)
         front.set_pixel_color(0, 120, 0, 60, 60);
     }
 
-    if (led_info.belt_initialization) {
+    if (!led_info.belt_initialization) {
         if (led_info.belt_velocity <= 2.0f) {
             behind.set_pixel_color(69, 75, 0, 0, 0);
+            behind.set_pixel_color(37, 68, 0, 0, 0);
         } else if (led_info.belt_velocity <= 3.0f) {
             behind.set_pixel_color(62, 75, 120, 0, 0);
+            behind.set_pixel_color(37, 61, 0, 0, 0);
         } else if (led_info.belt_velocity <= 4.0f) {
             behind.set_pixel_color(57, 75, 120, 0, 0);
+            behind.set_pixel_color(37, 56, 0, 0, 0);
         } else if (led_info.belt_velocity <= 5.0f) {
             behind.set_pixel_color(52, 75, 120, 0, 0);
+            behind.set_pixel_color(37, 51, 0, 0, 0);
         } else if (led_info.belt_velocity <= 6.0f) {
             behind.set_pixel_color(47, 75, 120, 0, 0);
+            behind.set_pixel_color(37, 46, 0, 0, 0);
         } else if (led_info.belt_velocity <= 7.0f) {
             behind.set_pixel_color(42, 75, 120, 0, 0);
+            behind.set_pixel_color(37, 41, 0, 0, 0);
         } else {
             behind.set_pixel_color(37, 75, 120, 0, 0);
         }
     } else {
         if (led_info.belt_velocity <= 2.0f) {
             behind.set_pixel_color(69, 75, 0, 0, 0);
+            behind.set_pixel_color(37, 68, 0, 0, 0);
         } else if (led_info.belt_velocity <= 3.0f) {
             behind.set_pixel_color(62, 75, 0, 120, 0);
+            behind.set_pixel_color(37, 61, 0, 0, 0);
         } else if (led_info.belt_velocity <= 4.0f) {
             behind.set_pixel_color(57, 75, 0, 120, 0);
+            behind.set_pixel_color(37, 56, 0, 0, 0);
         } else if (led_info.belt_velocity <= 5.0f) {
             behind.set_pixel_color(52, 75, 0, 120, 0);
+            behind.set_pixel_color(37, 51, 0, 0, 0);
         } else if (led_info.belt_velocity <= 6.0f) {
             behind.set_pixel_color(47, 75, 0, 120, 0);
+            behind.set_pixel_color(37, 46, 0, 0, 0);
         } else if (led_info.belt_velocity <= 7.0f) {
             behind.set_pixel_color(42, 75, 0, 120, 0);
+            behind.set_pixel_color(37, 41, 0, 0, 0);
         } else {
             behind.set_pixel_color(37, 75, 0, 120, 0);
         }
@@ -81,8 +93,10 @@ void update_led(LEDInformation& led_info)
         behind.set_pixel_color(0, 11, 120, 0, 0);
     } else if (led_info.battery_voltage[0] <= 19.5f) {
         behind.set_pixel_color(0, 3, 0, 0, 120);
+        behind.set_pixel_color(4, 11, 0, 0, 0);
     } else if (led_info.battery_voltage[0] <= 20.5f) {
         behind.set_pixel_color(0, 7, 0, 0, 120);
+        behind.set_pixel_color(7, 11, 0, 0, 0);
     } else {
         behind.set_pixel_color(0, 11, 0, 0, 120);
     }
@@ -91,8 +105,10 @@ void update_led(LEDInformation& led_info)
         behind.set_pixel_color(12, 24, 120, 0, 0);
     } else if (led_info.battery_voltage[1] <= 19.5f) {
         behind.set_pixel_color(12, 16, 0, 0, 120);
+        behind.set_pixel_color(17, 24, 0, 0, 0);
     } else if (led_info.battery_voltage[1] <= 20.5f) {
         behind.set_pixel_color(12, 20, 0, 0, 120);
+        behind.set_pixel_color(21, 24, 0, 0, 0);
     } else {
         behind.set_pixel_color(12, 24, 0, 0, 120);
     }
@@ -101,8 +117,10 @@ void update_led(LEDInformation& led_info)
         behind.set_pixel_color(25, 37, 120, 0, 0);
     } else if (led_info.battery_voltage[2] <= 19.5f) {
         behind.set_pixel_color(25, 29, 0, 120, 0);
+        behind.set_pixel_color(30, 37, 0, 0, 0);
     } else if (led_info.battery_voltage[2] <= 20.5f) {
         behind.set_pixel_color(25, 33, 0, 120, 0);
+        behind.set_pixel_color(34, 37, 0, 0, 0);
     } else {
         behind.set_pixel_color(25, 37, 0, 120, 0);
     }
@@ -125,7 +143,7 @@ void loop()
 
     behind.show();
     front.show();
-    HAL_Delay(1000);
+    HAL_Delay(10);
     update_heartbeat_led();
 }
 
