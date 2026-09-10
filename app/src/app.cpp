@@ -1,5 +1,7 @@
 #include "app/app.hpp"
 
+#include <cmath>
+
 #include "app/led_information.hpp"
 #include "app/neopixel_16bit.hpp"
 #include "app/neopixel_32bit.hpp"
@@ -13,7 +15,7 @@
 gn10_can::drivers::FDCANDriver fdcan1_driver(&hfdcan1);
 gn10_can::FDCANBus fdcan1_bus(fdcan1_driver);
 gn10_can::devices::LEDServer<LEDInformation> led_server_info(fdcan1_bus, 2);
-gn10_can::devices::LEDServer<robot_config::command_t> led_ser1ver_command(fdcan1_bus, 1);
+gn10_can::devices::LEDServer<robot_config::command_t> led_server_command(fdcan1_bus, 1);
 
 // LED受信構造体
 LEDInformation led_info;
@@ -21,10 +23,14 @@ robot_config::command_t led_command;
 
 Neopixel16bit behind(&htim15, TIM_CHANNEL_1, 120);
 Neopixel32bit front(&htim2, TIM_CHANNEL_4, 121);
-Neopixel32bit localization(&htim2, TIM_CHANNEL_2, 28);
+Neopixel32bit localization(&htim2, TIM_CHANNEL_1, 28);
 
 constexpr uint32_t HEARTBEAT_TOGGLE_INTERVAL_MS = 500;
 uint32_t heartbeat_last_toggle_time_ms          = 0;
+
+uint8_t prev_localization_pixel = 14;
+bool prev_reverse_initialized   = false;
+bool prev_reverse               = false;
 
 /**
  * @brief 一定周期のLEDトグル
@@ -38,6 +44,14 @@ void update_heartbeat_led()
         // HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
     }
 }
+
+enum class TargetLEDColor : uint8_t {
+    Bucket1,
+    Bucket2,
+    Bucket3,
+    Desk,
+    Flag,
+} target;
 
 void update_led_info(LEDInformation& led_info)
 {
@@ -118,19 +132,100 @@ void update_led_info(LEDInformation& led_info)
     }
 
     if (led_info.battery_voltage[2] <= 18.8f) {
-        behind.set_pixel_color(25, 37, 120, 0, 0);
+        behind.set_pixel_color(25, 36, 120, 0, 0);
     } else if (led_info.battery_voltage[2] <= 19.5f) {
         behind.set_pixel_color(25, 29, 0, 120, 0);
-        behind.set_pixel_color(30, 37, 0, 0, 0);
+        behind.set_pixel_color(30, 36, 0, 0, 0);
     } else if (led_info.battery_voltage[2] <= 20.5f) {
         behind.set_pixel_color(25, 33, 0, 120, 0);
-        behind.set_pixel_color(34, 37, 0, 0, 0);
+        behind.set_pixel_color(34, 36, 0, 0, 0);
     } else {
-        behind.set_pixel_color(25, 37, 0, 120, 0);
+        behind.set_pixel_color(25, 36, 0, 120, 0);
     }
 }
 
-void update_led_command(robot_config::command_t& command) {}
+uint8_t angle_to_pixel(float angle_rad)
+{
+    constexpr float MAX_ANGLE      = M_PI / 2.0f;
+    constexpr uint8_t CENTER_PIXEL = 14;
+    constexpr uint8_t MAX_OFFSET   = 14;
+
+    // -1.0 〜 +1.0 に正規化
+    float normalized = angle_rad / MAX_ANGLE;
+    if (normalized > 1.0f) normalized = 1.0f;
+    if (normalized < -1.0f) normalized = -1.0f;
+
+    // 中央からのオフセットを計算してピクセル番号へ
+    int pixel = CENTER_PIXEL + static_cast<int>(normalized * MAX_OFFSET);
+
+    if (pixel < 0) pixel = 0;
+    if (pixel > 28) pixel = 28;
+
+    return static_cast<uint8_t>(pixel);
+}
+
+void update_localization_led(float target_rad, TargetLEDColor target)
+{
+    uint8_t target_pixel = angle_to_pixel(target_rad);
+    uint8_t r, g, b;
+
+    bool reverse;
+    if (target_pixel >= prev_localization_pixel) {
+        reverse = false;
+    } else {
+        reverse = true;
+    }
+
+    if (!prev_reverse_initialized || reverse != prev_reverse) {
+        if (reverse) {
+            localization.set_animation_start(prev_localization_pixel);
+        } else {
+            localization.set_animation_start(
+                target_pixel < prev_localization_pixel ? target_pixel : prev_localization_pixel
+            );
+        }
+        prev_reverse_initialized = true;
+    }
+
+    switch (target) {
+        case TargetLEDColor::Bucket1:
+            r = 0;
+            g = 0;
+            b = 180;
+            break;
+        case TargetLEDColor::Bucket2:
+            r = 0;
+            b = 0;
+            g = 180;
+            break;
+        case TargetLEDColor::Bucket3:
+            r = 0;
+            b = 0;
+            g = 180;
+            break;
+        case TargetLEDColor::Desk:
+            r = 0;
+            b = 90;
+            g = 90;
+            break;
+        case TargetLEDColor::Flag:
+            b = 0;
+            r = 90;
+            g = 90;
+            break;
+        default:
+            break;
+    }
+
+    if (reverse) {
+        localization.flash_sky_tree(target_pixel, 3, prev_localization_pixel, r, g, b, true);
+    } else {
+        localization.flash_sky_tree(prev_localization_pixel, 3, target_pixel, r, g, b, false);
+    }
+
+    prev_reverse            = reverse;
+    prev_localization_pixel = target_pixel;
+}
 
 void setup()
 {
@@ -147,8 +242,13 @@ void loop()
         update_led_info(led_info);
         HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
     }
-    if (led_ser1ver_command.get_information(led_command)) {
-        update_led_command(led_command);
+    if (led_server_command.get_information(led_command)) {
+        update_localization_led(led_command.bucket1_angle_yaw_rad, TargetLEDColor::Bucket1);
+        update_localization_led(led_command.bucket2_angle_yaw_rad, TargetLEDColor::Bucket2);
+        update_localization_led(led_command.bucket3_angle_yaw_rad, TargetLEDColor::Bucket3);
+        update_localization_led(led_command.desk_angle_yaw_rad, TargetLEDColor::Desk);
+        update_localization_led(led_command.flag_angle_yaw_rad, TargetLEDColor::Flag);
+
         HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
     }
     localization.show();
@@ -164,6 +264,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)
 {
     behind.pulse_sent_callback(htim);
     front.pulse_sent_callback(htim);
+    localization.pulse_sent_callback(htim);
 }
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo0ITs)
 {

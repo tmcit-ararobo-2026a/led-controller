@@ -91,42 +91,70 @@ void Neopixel32bit::pulse_sent_callback(TIM_HandleTypeDef* htim)
     }
 }
 
-// 記憶用フラグ
-
 void Neopixel32bit::flash_sky_tree(
     uint8_t min_pixel,
     uint8_t pixel_animation_sum,
     uint8_t max_pixel,
     uint8_t r,
     uint8_t g,
-    uint8_t b
+    uint8_t b,
+    bool reverse
 )
 {
-    // init
-    if (max_pixel + pixel_animation_sum == led_num) {
-        led_num = min_pixel;
-        set_pixel_color(max_pixel, max_pixel, 0, 0, 0);
-    }
-
-    // 全体を暗く光らせる
-    fill(r / 80, g / 80, b / 80);
-
-    if (min_pixel <= led_num && led_num <= max_pixel + pixel_animation_sum) {
-        int div = 1;
-        for (int pixel_num = 0;
-             min_pixel <= led_num - pixel_num && pixel_num <= pixel_animation_sum;
-             pixel_num++) {
-            uint8_t tail_max = led_num - pixel_num;
-            uint8_t tail_min = (tail_max >= 3) ? tail_max - 3 : 0;
-            if (tail_min < min_pixel) tail_min = min_pixel;
-
-            set_pixel_color(tail_min, tail_max, r / div, g / div, b / div);
-
-            div++;
+    if (!reverse) {
+        // ---------- 正方向（元の実装のまま） ----------
+        if (max_pixel + pixel_animation_sum == led_num) {
+            led_num = min_pixel;
+            set_pixel_color(max_pixel, max_pixel, 0, 0, 0);
         }
-    }
 
-    led_num++;
+        fill(r / 80, g / 80, b / 80);
+
+        if (min_pixel <= led_num && led_num <= max_pixel + pixel_animation_sum) {
+            int div = 1;
+            for (int pixel_num = 0;
+                 min_pixel <= led_num - pixel_num && pixel_num <= pixel_animation_sum;
+                 pixel_num++) {
+                int tail_max = led_num - pixel_num;
+                int tail_min = (tail_max >= 3) ? tail_max - 3 : 0;
+                if (tail_min < min_pixel) tail_min = min_pixel;
+
+                set_pixel_color((uint8_t)tail_min, (uint8_t)tail_max, r / div, g / div, b / div);
+                div++;
+            }
+        }
+
+        led_num++;
+    } else {
+        // ---------- 負方向（反転版） ----------
+        // 折り返し判定：先頭が min_pixel より animation_sum 分手前まで来たら max_pixel に戻す
+        if (led_num < (int)min_pixel - (int)pixel_animation_sum) {
+            led_num = max_pixel;
+            set_pixel_color(min_pixel, min_pixel, 0, 0, 0);
+        }
+
+        fill(r / 80, g / 80, b / 80);
+
+        if (led_num <= max_pixel && led_num >= (int)min_pixel - (int)pixel_animation_sum) {
+            int div = 1;
+            for (int pixel_num = 0;
+                 led_num + pixel_num <= max_pixel && pixel_num <= pixel_animation_sum;
+                 pixel_num++) {
+                int tail_min = led_num + pixel_num;
+                int tail_max = (tail_min + 3 <= max_pixel) ? tail_min + 3 : max_pixel;
+
+                set_pixel_color((uint8_t)tail_min, (uint8_t)tail_max, r / div, g / div, b / div);
+                div++;
+            }
+        }
+
+        led_num--;
+    }
+}
+
+void Neopixel32bit::set_animation_start(int start_value)
+{
+    led_num = start_value;
 }
 
 void Neopixel32bit::gradually_shine(

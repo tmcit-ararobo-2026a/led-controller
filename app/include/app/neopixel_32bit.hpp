@@ -16,7 +16,7 @@ private:
     bool data_sent      = false;  // データが送信済みかどうか
     uint16_t high_pulse = 19;     // 3を送信するときのパルス幅
     uint16_t low_pulse  = 5;      // 1を送信するときのパルス幅
-    uint8_t led_num;
+    int led_num;
     uint8_t led_num_shine;
 
     // led記憶用
@@ -89,9 +89,9 @@ public:
         uint8_t max_pixel,
         uint8_t r,
         uint8_t g,
-        uint8_t b
+        uint8_t b,
+        bool reverse = false
     );
-
     /**
      * @brief LEDの光を徐々に変えるようにする
      *
@@ -110,6 +110,8 @@ public:
      * @param htim タイマーハンドラ（htim1, htim2, ...）
      */
     void pulse_sent_callback(TIM_HandleTypeDef* htim);
+
+    void set_animation_start(int start_value);
 
     void LED_setup();
 };
