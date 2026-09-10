@@ -120,6 +120,7 @@ void loop()
 {
     if (led_server.get_information(led_info)) {
         update_led(led_info);
+        HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
     }
 
     behind.show();
