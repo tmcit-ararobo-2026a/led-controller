@@ -113,5 +113,7 @@ public:
 
     void set_animation_start(int start_value);
 
+    int get_animation_position() const;
+
     void LED_setup();
 };

@@ -152,6 +152,11 @@ void Neopixel32bit::flash_sky_tree(
     }
 }
 
+int Neopixel32bit::get_animation_position() const
+{
+    return led_num;
+}
+
 void Neopixel32bit::set_animation_start(int start_value)
 {
     led_num = start_value;
