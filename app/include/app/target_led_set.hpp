@@ -12,24 +12,25 @@ class TargetLEDSet
 public:
     TargetLEDSet(LEDIndexConversion conversion) : conversion_(conversion) {}
 
-    // 呼ばれるたびに、自分の担当分だけクリアして描き直す
     void set_pixel_color(uint8_t r, uint8_t g, uint8_t b)
     {
         pixels_.fill(Pixel{0, 0, 0});
 
-        static constexpr std::array<float, 3> kWeights = {1.0f, 0.6f, 0.25f};
+        static constexpr std::array<float, 3> bright_ratio = {1.0f, 0.6f, 0.25f};
 
-        for (int distance = -static_cast<int>(kWeights.size()) + 1;
-             distance <= static_cast<int>(kWeights.size()) - 1;
+        for (int distance = -static_cast<int>(bright_ratio.size()) + 1;
+             distance <= static_cast<int>(bright_ratio.size()) - 1;
              ++distance) {
             int target_index = static_cast<int>(index_) + distance;
+
+            // 範囲外アクセス防止
             if (target_index < 0 || target_index >= static_cast<int>(PixelNum)) {
                 continue;
             }
-            float weight            = kWeights[std::abs(distance)];
-            pixels_[target_index].r = static_cast<uint8_t>(r * weight);
-            pixels_[target_index].g = static_cast<uint8_t>(g * weight);
-            pixels_[target_index].b = static_cast<uint8_t>(b * weight);
+            float ratio             = bright_ratio[std::abs(distance)];
+            pixels_[target_index].r = static_cast<uint8_t>(r * ratio);
+            pixels_[target_index].g = static_cast<uint8_t>(g * ratio);
+            pixels_[target_index].b = static_cast<uint8_t>(b * ratio);
         }
     }
 
