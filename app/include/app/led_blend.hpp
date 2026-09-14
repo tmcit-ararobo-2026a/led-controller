@@ -5,8 +5,8 @@
 
 #include "app/pixel.hpp"
 
-template <uint16_t PixelNum, typename... TargetLEDSets>
-std::array<Pixel, PixelNum> blend_pixels(const TargetLEDSets&... targets)
+template <uint16_t PixelNum, class TargetLEDSets>
+std::array<Pixel, PixelNum> blend_pixels(const TargetLEDSets& targets)
 {
     std::array<Pixel, PixelNum> result{};
 
