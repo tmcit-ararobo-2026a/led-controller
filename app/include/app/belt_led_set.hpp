@@ -2,7 +2,7 @@
 #include <array>
 #include <cstdint>
 
-#include "app/led_calculation.hpp"
+#include "app/led_index_conversion.hpp"
 #include "app/pixel.hpp"
 
 template <uint16_t PixelNum>
