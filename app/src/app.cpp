@@ -5,7 +5,7 @@
 #include "app/led_blend.hpp"
 #include "app/led_information.hpp"
 #include "app/localization_led_set.hpp"
-#include "app/neopixel_16bit.hpp"
+#include "app/neopixel16bit.hpp"
 #include "app/robot_config.hpp"
 // gn10
 #include "gn10_can/devices/led_server.hpp"
