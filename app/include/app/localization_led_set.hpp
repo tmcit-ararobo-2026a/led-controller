@@ -7,10 +7,10 @@
 #include "app/pixel.hpp"
 
 template <uint16_t PixelNum>
-class TargetLEDSet
+class LocalizationLEDSet
 {
 public:
-    TargetLEDSet(LEDIndexConversion conversion) : conversion_(conversion) {}
+    LocalizationLEDSet(LEDIndexConversion conversion) : conversion_(conversion) {}
 
     void set_pixel_color(uint8_t r, uint8_t g, uint8_t b)
     {
@@ -39,7 +39,7 @@ public:
         index_ = conversion_.index_conversion(target_rad);
     }
 
-    const std::array<Pixel, PixelNum>& pixels() const
+    const std::array<Pixel, PixelNum>& to_pixels() const
     {
         return pixels_;
     }

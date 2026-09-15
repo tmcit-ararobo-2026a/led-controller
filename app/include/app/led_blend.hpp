@@ -22,7 +22,7 @@ std::array<Pixel, PixelNum> blend_pixels(const TargetLEDSets& targets)
         }
     };
 
-    (add_one(targets.pixels()), ...);
+    (add_one(targets.to_pixels()));
 
     return pixel;
 }
