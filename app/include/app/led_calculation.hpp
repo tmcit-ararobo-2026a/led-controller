@@ -4,12 +4,12 @@
 #include <cmath>
 #include <cstdint>
 
-class LEDCaluculation
+class LEDIndexConversion
 {
 public:
-    LEDCaluculation(float range_min, float range_max, uint16_t pixels_num);
+    LEDIndexConversion(float range_min, float range_max, uint16_t pixels_num);
 
-    uint8_t led_caluculation(float value) const;
+    uint8_t index_conversion(float value) const;
 
 private:
     float range_min_;
