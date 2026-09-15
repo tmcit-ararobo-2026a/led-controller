@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "app/pixel.hpp"
 #include "tim.h"
 
 template <std::size_t NumLED>
@@ -16,8 +17,8 @@ private:
     static constexpr std::size_t BIT_LEN_PER_PIXEL = 24;
     static constexpr std::size_t BUFFER_SIZE       = NumLED * BIT_LEN_PER_PIXEL + RESET_SLOTS;
 
-    uint16_t pulse_data_[BUFFER_SIZE];  // 送信用パルス幅データ
-    volatile bool data_sent_ = true;    // データが送信済みかどうか
+    uint16_t pulse_data_[BUFFER_SIZE] = {0};  // 送信用パルス幅データ
+    volatile bool started_dma_        = false;
 
     // パルス幅（タイマーのARR/PSC設定に合わせ変更可能）
     uint16_t high_count_ = 19;  // 1を送信するときのパルス幅
@@ -37,76 +38,37 @@ public:
     {
     }
 
-    /**
-     * @brief LEDのデータを送信する
-     *
-     * @return true: 送信成功, false: 送信失敗
-     */
-    bool show()
+    bool set_pixels(std::array<Pixel, NumLED> pixels)
     {
-        if (data_sent_) {
-            data_sent_ = false;
-            HAL_TIM_PWM_Stop_DMA(htim_, channel_);
-        } else {
-            return false;  // 前回の送信が完了していない
+        std::size_t index = 0;
+
+        for (std::size_t i = 0; i < NumLED; ++i) {
+            // WS2813は GRB 順でデータを発行する
+            uint32_t color = (static_cast<uint32_t>(pixels[i].g) << 16) |
+                             (static_cast<uint32_t>(pixels[i].r) << 8) |
+                             (static_cast<uint32_t>(pixels[i].b));
+
+            // MSB (23bit目) から順に判定してタイマーのデューティ値を書き込む
+            for (int bit = 23; bit >= 0; --bit) {
+                if (color & (1U << bit)) {
+                    pulse_data_[index++] = high_count_;
+                } else {
+                    pulse_data_[index++] = low_count_;
+                }
+            }
         }
-        std::memset(
-            &pulse_data_[NumLED * 24], 0, RESET_SLOTS * sizeof(uint16_t)
-        );  // リセット部分は0
-        HAL_TIM_PWM_Start_DMA(
-            htim_, channel_, reinterpret_cast<uint32_t*>(pulse_data_), BUFFER_SIZE
-        );
-        return true;
-    }
 
-    /**
-     * @brief PWM信号が送信されたときのコールバック
-     *
-     * @param htim タイマーハンドラ（htim1, htim2, ...）
-     */
-    void pulse_sent_callback(TIM_HandleTypeDef* htim)
-    {
-        if (htim->Instance != htim_->Instance) return;
-        data_sent_ = true;
-    }
+        // 残りの領域（RESET_SLOTS）はデータラインをLOWに保つため 0 を埋める
+        while (index < BUFFER_SIZE) {
+            pulse_data_[index++] = 0;
+        }
 
-    /**
-     * @brief 指定したLEDの色を設定する
-     *
-     * @param pixel LEDのインデックス（0からnum_pixels-1まで）
-     * @param r 赤色成分（0-255）
-     * @param g 緑色成分（0-255）
-     * @param b 青色成分（0-255）
-     */
-    void set_pixel_color(std::size_t pixel, uint8_t r, uint8_t g, uint8_t b);
-
-    /**
-     * @brief 指定した範囲LEDの色を設定する
-     *
-     * @param start_pixel LEDのインデックスの始まり
-     * @param end_pixel LEDのインデックスの終わり
-     * @param r 赤色成分（0-255）
-     * @param g 緑色成分（0-255）
-     * @param b 青色成分（0-255）
-     */
-    void set_pixel_range(
-        std::size_t start_pixel, std::size_t end_pixel, uint8_t r, uint8_t g, uint8_t b
-    );
-
-    /**
-     * @brief すべてのLEDの色を設定する
-     *
-     * @param r 赤色成分（0-255）
-     * @param g 緑色成分（0-255）
-     * @param b 青色成分（0-255）
-     */
-    void fill(uint8_t r, uint8_t g, uint8_t b);
-
-    /**
-     * @brief すべてのLEDを消灯する
-     */
-    void clear()
-    {
-        std::fill_n(pulse_data_, NumLED * BIT_LEN_PER_PIXEL, low_count_);
+        // 初回のみDMAを開始する（Circularモードなので停止命令は不要）
+        if (!started_dma_) {
+            HAL_TIM_PWM_Start_DMA(
+                htim_, channel_, reinterpret_cast<uint32_t*>(pulse_data_), BUFFER_SIZE
+            );
+            started_dma_ = true;
+        }
     }
 };

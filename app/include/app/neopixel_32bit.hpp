@@ -1,31 +1,28 @@
 #pragma once
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
+#include "app/pixel.hpp"
 #include "tim.h"
-#define LED_over_pixel  160
-#define LED_under_pixel 120
 
+template <std::size_t NumLED>
 class Neopixel32bit
 {
 private:
-    TIM_HandleTypeDef* htim;      // タイマーのハンドラ
-    uint16_t channel;             // タイマーのチャンネル
-    int num_pixels;               // LEDの数
-    uint8_t (*pixels)[3];         // LEDの色(GRB:0~255)
-    uint32_t* pwm_data;           // PWM波形のパルス幅データ
-    bool data_sent      = false;  // データが送信済みかどうか
-    uint16_t high_pulse = 19;     // 3を送信するときのパルス幅
-    uint16_t low_pulse  = 5;      // 1を送信するときのパルス幅
-    int led_num;
-    uint8_t led_num_shine;
+    TIM_HandleTypeDef* htim_;  // タイマーのハンドラ
+    uint32_t channel_;         // タイマーのチャンネル
 
-    // led記憶用
-    bool shine_flag = true;
-    bool dark_flag;
-    // 定義類
-    uint8_t led_r;
-    uint8_t led_g;
-    uint8_t led_b;
+    // リセット用ゼロ挿入数（300us確保用）
+    static constexpr std::size_t RESET_SLOTS       = 500;
+    static constexpr std::size_t BIT_LEN_PER_PIXEL = 24;
+    static constexpr std::size_t BUFFER_SIZE       = NumLED * BIT_LEN_PER_PIXEL + RESET_SLOTS;
+
+    uint32_t pulse_data_[BUFFER_SIZE] = {0};  // 送信用パルス幅データ
+    volatile bool started_dma_        = false;
+
+    // パルス幅（タイマーのARR/PSC設定に合わせ変更可能）
+    uint32_t high_count_ = 19;  // 1を送信するときのパルス幅
+    uint32_t low_count_  = 5;   // 0を送信するときのパルス幅
 
 public:
     /**
@@ -33,87 +30,45 @@ public:
      *
      * @param htim タイマーハンドラ（htim1, htim2, ...）
      * @param channel チャンネル（TIM_CHANNEL_1, TIM_CHANNEL_2, ...）
-     * @param num_pixels 使用するLEDの最大数
+     * @param high データHIGHを送信する際のCOUNT
+     * @param low データLOWを送信する際のCOUNT
      */
-    Neopixel32bit(TIM_HandleTypeDef* htim, uint16_t channel, int num_pixels);
+    Neopixel32bit(TIM_HandleTypeDef* htim, uint32_t channel, uint32_t high = 19, uint32_t low = 5)
+        : htim_(htim), channel_(channel), high_count_(high), low_count_(low)
+    {
+    }
 
-    /**
-     * @brief Neopixelクラスのデストラクタ
-     */
-    ~Neopixel32bit();
+    bool set_pixels(std::array<Pixel, NumLED> pixels)
+    {
+        std::size_t index = 0;
 
-    /**
-     * @brief LEDのデータを送信する
-     *
-     * @return true: 送信成功, false: 送信失敗
-     */
-    bool show();
+        for (std::size_t i = 0; i < NumLED; ++i) {
+            // WS2813は GRB 順でデータを発行する
+            uint32_t color = (static_cast<uint32_t>(pixels[i].g) << 16) |
+                             (static_cast<uint32_t>(pixels[i].r) << 8) |
+                             (static_cast<uint32_t>(pixels[i].b));
 
-    /**
-     * @brief すべてのLEDを消灯する
-     */
-    void clear();
+            // MSB (23bit目) から順に判定してタイマーのデューティ値を書き込む
+            for (int bit = 23; bit >= 0; --bit) {
+                if (color & (1U << bit)) {
+                    pulse_data_[index++] = high_count_;
+                } else {
+                    pulse_data_[index++] = low_count_;
+                }
+            }
+        }
 
-    /**
-     * @brief すべてのLEDの色を設定する
-     *
-     * @param r 赤色成分（0-255）
-     * @param g 緑色成分（0-255）
-     * @param b 青色成分（0-255）
-     */
-    void fill(uint8_t r, uint8_t g, uint8_t b);
+        // 残りの領域（RESET_SLOTS）はデータラインをLOWに保つため 0 を埋める
+        while (index < BUFFER_SIZE) {
+            pulse_data_[index++] = 0;
+        }
 
-    /**
-     * @brief 指定したLEDの色を設定する
-     *
-     * @param pixel LEDのインデックス（0からnum_pixels-1まで）
-     * @param r 赤色成分（0-255）
-     * @param g 緑色成分（0-255）
-     * @param b 青色成分（0-255）
-     */
-    void set_pixel_color(uint8_t min_pixel, uint8_t max_pixel, uint8_t r, uint8_t g, uint8_t b);
-
-    /**
-     * @brief LEDを東京スカイツリーみたいに光らせる
-     *
-     * @param min_pixel 最初にしたいLED
-     * @param pixel_animation_sum どのぐらいのLEDを動かすか、残像を決める
-     * @param max_pixel 最後にしたいLED
-     * @param r 赤色成分（0-255）
-     * @param g 緑色成分（0-255）
-     * @param b 青色成分（0-255）
-     */
-    void flash_sky_tree(
-        uint8_t min_pixel,
-        uint8_t pixel_animation_sum,
-        uint8_t max_pixel,
-        uint8_t r,
-        uint8_t g,
-        uint8_t b,
-        bool reverse = false
-    );
-    /**
-     * @brief LEDの光を徐々に変えるようにする
-     *
-     * @param pixel LEDのインデックス（0からnum_pixels-1まで）
-     * @param r 赤色成分（0-255）
-     * @param g 緑色成分（0-255）
-     * @param b 青色成分（0-255）
-     */
-    void gradually_shine(uint8_t min_pixel, uint8_t max_pixel, uint8_t r, uint8_t g, uint8_t b);
-
-    void gradually_dark(uint8_t min_pixel, uint8_t max_pixel);
-
-    /**
-     * @brief PWM信号が送信されたときのコールバック
-     *
-     * @param htim タイマーハンドラ（htim1, htim2, ...）
-     */
-    void pulse_sent_callback(TIM_HandleTypeDef* htim);
-
-    void set_animation_start(int start_value);
-
-    int get_animation_position() const;
-
-    void LED_setup();
+        // 初回のみDMAを開始する（Circularモードなので停止命令は不要）
+        if (!started_dma_) {
+            HAL_TIM_PWM_Start_DMA(
+                htim_, channel_, reinterpret_cast<uint32_t*>(pulse_data_), BUFFER_SIZE
+            );
+            started_dma_ = true;
+        }
+    }
 };
