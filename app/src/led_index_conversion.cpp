@@ -1,4 +1,4 @@
-#include "app/led_calculation.hpp"
+#include "app/led_index_conversion.hpp"
 
 LEDIndexConversion::LEDIndexConversion(float range_min, float range_max, uint16_t pixels_num)
     : range_min_(range_min), range_max_(range_max), pixels_num_(pixels_num)
