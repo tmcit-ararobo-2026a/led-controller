@@ -102,7 +102,10 @@ void update_led_info(LEDInformation& led_info)
         } else {
             behind.set_pixel_color(37, 75, 120, 0, 0);
         }
-    } else {
+        behind.set_pixel_color(0, 36, 120, 0, 0);
+    }
+
+    else {
         if (led_info.belt_velocity <= 2.0f) {
             behind.set_pixel_color(72, 75, 0, 120, 0);
             behind.set_pixel_color(37, 71, 0, 0, 0);
@@ -137,77 +140,57 @@ void update_led_info(LEDInformation& led_info)
             behind.set_pixel_color(42, 75, 0, 120, 0);
             behind.set_pixel_color(37, 41, 0, 0, 0);
         } else if (led_info.belt_velocity <= 7.5f) {
-            behind.set_pixel_color(39, 75, 0, 120, 0);
-            behind.set_pixel_color(37, 38, 0, 0, 0);
+            behind.set_pixel_color(37, 75, 0, 120, 0);
+        } else if (led_info.belt_velocity <= 8.0f) {
+            behind.set_pixel_color(37, 75, 0, 120, 0);
         } else {
             behind.set_pixel_color(37, 75, 0, 120, 0);
         }
+        behind.set_pixel_color(0, 36, 0, 120, 0);
     }
+    /*
+        if (led_info.battery_voltage[0] <= 18.8f) {
+            behind.set_pixel_color(0, 11, 120, 0, 0);
+        } else if (led_info.battery_voltage[0] <= 19.5f) {
+            behind.set_pixel_color(0, 3, 0, 0, 120);
+            behind.set_pixel_color(4, 11, 0, 0, 0);
+        } else if (led_info.battery_voltage[0] <= 20.5f) {
+            behind.set_pixel_color(0, 7, 0, 0, 120);
+            behind.set_pixel_color(7, 11, 0, 0, 0);
+        } else {
+            behind.set_pixel_color(0, 11, 0, 0, 120);
+        }
 
-    if (led_info.battery_voltage[0] <= 18.8f) {
-        behind.set_pixel_color(0, 11, 120, 0, 0);
-    } else if (led_info.battery_voltage[0] <= 19.5f) {
-        behind.set_pixel_color(0, 3, 0, 0, 120);
-        behind.set_pixel_color(4, 11, 0, 0, 0);
-    } else if (led_info.battery_voltage[0] <= 20.5f) {
-        behind.set_pixel_color(0, 7, 0, 0, 120);
-        behind.set_pixel_color(7, 11, 0, 0, 0);
-    } else {
-        behind.set_pixel_color(0, 11, 0, 0, 120);
-    }
+        if (led_info.battery_voltage[1] <= 18.8f) {
+            behind.set_pixel_color(12, 24, 120, 0, 0);
+        } else if (led_info.battery_voltage[1] <= 19.5f) {
+            behind.set_pixel_color(12, 16, 0, 0, 120);
+            behind.set_pixel_color(17, 24, 0, 0, 0);
+        } else if (led_info.battery_voltage[1] <= 20.5f) {
+            behind.set_pixel_color(12, 20, 0, 0, 120);
+            behind.set_pixel_color(21, 24, 0, 0, 0);
+        } else {
+            behind.set_pixel_color(12, 24, 0, 0, 120);
+        }
 
-    if (led_info.battery_voltage[1] <= 18.8f) {
-        behind.set_pixel_color(12, 24, 120, 0, 0);
-    } else if (led_info.battery_voltage[1] <= 19.5f) {
-        behind.set_pixel_color(12, 16, 0, 0, 120);
-        behind.set_pixel_color(17, 24, 0, 0, 0);
-    } else if (led_info.battery_voltage[1] <= 20.5f) {
-        behind.set_pixel_color(12, 20, 0, 0, 120);
-        behind.set_pixel_color(21, 24, 0, 0, 0);
-    } else {
-        behind.set_pixel_color(12, 24, 0, 0, 120);
-    }
-
-    if (led_info.battery_voltage[2] <= 18.8f) {
-        behind.set_pixel_color(25, 36, 120, 0, 0);
-    } else if (led_info.battery_voltage[2] <= 19.5f) {
-        behind.set_pixel_color(25, 29, 0, 120, 0);
-        behind.set_pixel_color(30, 36, 0, 0, 0);
-    } else if (led_info.battery_voltage[2] <= 20.5f) {
-        behind.set_pixel_color(25, 33, 0, 120, 0);
-        behind.set_pixel_color(34, 36, 0, 0, 0);
-    } else {
-        behind.set_pixel_color(25, 36, 0, 120, 0);
-    }
+        if (led_info.battery_voltage[2] <= 18.8f) {
+            behind.set_pixel_color(25, 36, 120, 0, 0);
+        } else if (led_info.battery_voltage[2] <= 19.5f) {
+            behind.set_pixel_color(25, 29, 0, 120, 0);
+            behind.set_pixel_color(30, 36, 0, 0, 0);
+        } else if (led_info.battery_voltage[2] <= 20.5f) {
+            behind.set_pixel_color(25, 33, 0, 120, 0);
+            behind.set_pixel_color(34, 36, 0, 0, 0);
+        } else {
+            behind.set_pixel_color(25, 36, 0, 120, 0);
+        }*/
 }
-
-uint8_t angle_to_pixel(float angle_rad)
-{
-    constexpr float MAX_ANGLE      = M_PI / 2.0f;
-    constexpr uint8_t CENTER_PIXEL = 14;
-    constexpr uint8_t MAX_OFFSET   = 14;
-
-    // -1.0 〜 +1.0 に正規化
-    float normalized = angle_rad / MAX_ANGLE;
-    if (normalized > 1.0f) normalized = 1.0f;
-    if (normalized < -1.0f) normalized = -1.0f;
-
-    // 中央からのオフセットを計算してピクセル番号へ
-    int pixel = CENTER_PIXEL + static_cast<int>(normalized * MAX_OFFSET);
-
-    if (pixel < 0) pixel = 0;
-    if (pixel > 28) pixel = 28;
-
-    return static_cast<uint8_t>(pixel);
-}
-bool localization_moving = false;
 
 void setup()
 {
     fdcan1_driver.init();
     behind.LED_setup();
     front.LED_setup();
-    localization.LED_setup();
     heartbeat_last_toggle_time_ms = HAL_GetTick();
 }
 
