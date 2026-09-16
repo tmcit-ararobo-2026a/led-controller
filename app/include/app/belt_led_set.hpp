@@ -63,7 +63,7 @@ public:
          }
     };
 
-    const std::array<Pixel, PixelNum>& to_pixels() const
+        const std::array<Pixel, PixelNum>& to_pixels() const
     {
         return pixels_;
     }

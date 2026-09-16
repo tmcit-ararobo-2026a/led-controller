@@ -19,7 +19,7 @@
 // 定数
 constexpr uint16_t BEHIND_PIXEL_SUM   = 75;
 constexpr uint16_t BEHIND_PIXEL_BREAK = 37;
-constexpr uint16_t FRONT_PIXEL_SUM    = 120;
+constexpr uint16_t FRONT_PIXEL_SUM    = 22;
 
 LEDIndexConversion belt_conversion(2.0f, 8.0f, BEHIND_PIXEL_SUM - BEHIND_PIXEL_BREAK);
 LEDIndexConversion localization_conversion(-0.7f, 0.7f, FRONT_PIXEL_SUM);
@@ -62,22 +62,57 @@ void control_led_belt(LEDInformation& led_info)
     belt_behind.set_pixels(belt_power.to_pixels());
 }
 
+bool is_in_range(float value, float min, float max)
+{
+    return value >= min && value <= max;
+}
+
 void control_led_localization(robot_config::command_t& led_command)
 {
-    localization_flag.set_range(led_command.flag_angle_yaw_rad);
-    localization_flag.set_pixel_color(0, 0, 255);  // 旗:青
+    constexpr float RANGE_MIN = -0.7f;
+    constexpr float RANGE_MAX = 0.7f;
 
-    localization_bucket1.set_range(led_command.bucket1_angle_yaw_rad);
-    localization_bucket1.set_pixel_color(0, 255, 0);  // バケツ1:緑
+    bool any_in_range = false;
 
-    localization_bucket2.set_range(led_command.bucket2_angle_yaw_rad);
-    localization_bucket2.set_pixel_color(255, 0, 0);  // バケツ2:赤
+    if (is_in_range(led_command.flag_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
+        localization_flag.set_range(led_command.flag_angle_yaw_rad);
+        localization_flag.set_pixel_color(0, 0, 255);
+        any_in_range = true;
+    } else {
+        localization_flag.set_pixel_color(0, 0, 0);
+    }
 
-    localization_bucket3.set_range(led_command.bucket3_angle_yaw_rad);
-    localization_bucket3.set_pixel_color(255, 0, 0);  // バケツ3:赤
+    if (is_in_range(led_command.bucket1_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
+        localization_bucket1.set_range(led_command.bucket1_angle_yaw_rad);
+        localization_bucket1.set_pixel_color(0, 255, 0);
+        any_in_range = true;
+    } else {
+        localization_bucket1.set_pixel_color(0, 0, 0);
+    }
 
-    localization_move_bucket.set_range(led_command.move_bucket_angle_yaw_rad);
-    localization_move_bucket.set_pixel_color(255, 255, 0);  // 移動バケツ:黄色
+    if (is_in_range(led_command.bucket2_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
+        localization_bucket2.set_range(led_command.bucket2_angle_yaw_rad);
+        localization_bucket2.set_pixel_color(255, 0, 0);
+        any_in_range = true;
+    } else {
+        localization_bucket2.set_pixel_color(0, 0, 0);
+    }
+
+    if (is_in_range(led_command.bucket3_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
+        localization_bucket3.set_range(led_command.bucket3_angle_yaw_rad);
+        localization_bucket3.set_pixel_color(255, 0, 0);
+        any_in_range = true;
+    } else {
+        localization_bucket3.set_pixel_color(0, 0, 0);
+    }
+
+    if (is_in_range(led_command.move_bucket_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
+        localization_move_bucket.set_range(led_command.move_bucket_angle_yaw_rad);
+        localization_move_bucket.set_pixel_color(255, 255, 0);
+        any_in_range = true;
+    } else {
+        localization_move_bucket.set_pixel_color(0, 0, 0);
+    }
 
     auto blended = blend_pixels<FRONT_PIXEL_SUM>(
         localization_flag,
@@ -86,6 +121,30 @@ void control_led_localization(robot_config::command_t& led_command)
         localization_bucket3,
         localization_move_bucket
     );
+
+    // 全部範囲外だったときだけ、端3個を赤で上書き
+    if (!any_in_range) {
+        blended[0].r = 255;
+        blended[0].g = 0;
+        blended[0].b = 0;
+        blended[1].r = 255;
+        blended[1].g = 0;
+        blended[1].b = 0;
+        blended[2].r = 255;
+        blended[2].g = 0;
+        blended[2].b = 0;
+
+        blended[FRONT_PIXEL_SUM - 1].r = 255;
+        blended[FRONT_PIXEL_SUM - 1].g = 0;
+        blended[FRONT_PIXEL_SUM - 1].b = 0;
+        blended[FRONT_PIXEL_SUM - 2].r = 255;
+        blended[FRONT_PIXEL_SUM - 2].g = 0;
+        blended[FRONT_PIXEL_SUM - 2].b = 0;
+        blended[FRONT_PIXEL_SUM - 3].r = 255;
+        blended[FRONT_PIXEL_SUM - 3].g = 0;
+        blended[FRONT_PIXEL_SUM - 3].b = 0;
+    }
+
     localization_front.set_pixels(blended);
 }
 
@@ -96,7 +155,17 @@ void loop()
         HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
     }
 
-    led_command.bucket1_angle_yaw_rad = 0.3f;
+    led_command.bucket1_angle_yaw_rad     = 0.9f;
+    led_command.bucket2_angle_yaw_rad     = -0.8f;
+    led_command.bucket3_angle_yaw_rad     = 0.8f;
+    led_command.move_bucket_angle_yaw_rad = 0.8f;
+
+    for (float i = 0.1f; i < 1.0f; i += 0.1f) {
+        led_command.flag_angle_yaw_rad = i;
+        control_led_localization(led_command);
+
+        HAL_Delay(50);
+    }
     control_led_localization(led_command);
 }
 
