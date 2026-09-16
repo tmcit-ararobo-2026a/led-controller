@@ -5,14 +5,13 @@
 
 #include "app/pixel.hpp"
 
-template <uint16_t PixelNum, class TargetLEDSets>
-std::array<Pixel, PixelNum> blend_pixels(const TargetLEDSets& targets)
+template <uint16_t PixelNum, typename... TargetLEDSets>
+std::array<Pixel, PixelNum> blend_pixels(const TargetLEDSets&... targets)
 {
     std::array<Pixel, PixelNum> pixel{};
 
     auto add_one = [&pixel](const std::array<Pixel, PixelNum>& src) {
         for (uint16_t i = 0; i < PixelNum; ++i) {
-            // int -> uint8にすることでオーバーフロー対策
             int r      = static_cast<int>(pixel[i].r) + static_cast<int>(src[i].r);
             int g      = static_cast<int>(pixel[i].g) + static_cast<int>(src[i].g);
             int b      = static_cast<int>(pixel[i].b) + static_cast<int>(src[i].b);
@@ -22,7 +21,7 @@ std::array<Pixel, PixelNum> blend_pixels(const TargetLEDSets& targets)
         }
     };
 
-    (add_one(targets.to_pixels()));
+    (add_one(targets.to_pixels()), ...);
 
     return pixel;
 }

@@ -10,7 +10,7 @@ template <uint16_t PixelNum>
 class LocalizationLEDSet
 {
 public:
-    LocalizationLEDSet(LEDIndexConversion conversion) : conversion_(conversion) {}
+    LocalizationLEDSet(LEDIndexConversion& conversion) : conversion_(conversion) {}
 
     void set_pixel_color(uint8_t r, uint8_t g, uint8_t b)
     {
