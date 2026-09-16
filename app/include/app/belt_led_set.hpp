@@ -10,17 +10,22 @@ template <uint16_t PixelNum>
 class BeltLEDSet
 {
 public:
-    BeltLEDSet(LEDIndexConversion conversion, uint16_t start_pixel = 0)
-        : conversion_(conversion), start_pixel_(start_pixel)
-    {
-    }
+    BeltLEDSet(LEDIndexConversion& conversion) : conversion_(conversion) {}
 
     void set_pixel_color(uint8_t r, uint8_t g, uint8_t b, bool inversion = false)
     {
-        for (uint8_t i = start_pixel_; i < index_; i++) {
-            pixels_[i].r = r;
-            pixels_[i].g = g;
-            pixels_[i].b = b;
+        if (!inversion) {
+            for (uint16_t i = 0; i <= index_; i++) {
+                pixels_[i].r = r;
+                pixels_[i].g = g;
+                pixels_[i].b = b;
+            }
+        } else {
+            for (uint16_t i = index_; i < PixelNum; i++) {
+                pixels_[i].r = r;
+                pixels_[i].g = g;
+                pixels_[i].b = b;
+            }
         }
     }
 
@@ -29,9 +34,9 @@ public:
         return pixels_[index_];
     }
 
-    void set_range(float belt_velocity)
+    void set_range(float belt_velocity, bool inversion = false)
     {
-        index_ = conversion_.index_conversion(belt_velocity);
+        index_ = conversion_.index_conversion(belt_velocity, inversion);
     }
 
     const std::array<Pixel, PixelNum>& to_pixels() const
@@ -43,5 +48,4 @@ private:
     std::array<Pixel, PixelNum> pixels_{};
     uint16_t index_ = 0;
     LEDIndexConversion conversion_;
-    uint16_t start_pixel_;
 };

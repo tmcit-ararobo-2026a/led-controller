@@ -6,6 +6,7 @@
 #include "app/led_information.hpp"
 #include "app/localization_led_set.hpp"
 #include "app/neopixel16bit.hpp"
+#include "app/neopixel32bit.hpp"
 #include "app/robot_config.hpp"
 // gn10
 #include "gn10_can/devices/led_server.hpp"
@@ -17,11 +18,12 @@ constexpr uint16_t BEHIND_PIXEL_SUM   = 75;
 constexpr uint16_t BEHIND_PIXEL_BREAK = 37;
 constexpr uint16_t FRONT_PIXEL_SUM    = 120;
 
+LEDIndexConversion behind_conversion(0, 1.0, BEHIND_PIXEL_BREAK);
 LEDIndexConversion belt_conversion(2.0f, 8.0f, BEHIND_PIXEL_SUM);
 LEDIndexConversion localization_conversion(-0.7f, 0.7f, FRONT_PIXEL_SUM);
 
-BeltLEDSet<BEHIND_PIXEL_BREAK> behind_fill();
-BeltLEDSet<BEHIND_PIXEL_SUM> belt_power(belt_conversion, 37);
+BeltLEDSet<BEHIND_PIXEL_BREAK> behind_fill(behind_conversion);
+BeltLEDSet<BEHIND_PIXEL_SUM> belt_power(belt_conversion);
 LocalizationLEDSet<FRONT_PIXEL_SUM> localization(localization_conversion);
 
 LEDInformation led_info;
@@ -36,6 +38,11 @@ gn10_can::devices::LEDServer<robot_config::command_t> led_server_command(fdcan1_
 // 点滅LED設定
 constexpr uint32_t HEARTBEAT_TOGGLE_INTERVAL_MS = 500;
 uint32_t heartbeat_last_toggle_time_ms          = 0;
+
+// neopixel
+Neopixel16bit<BEHIND_PIXEL_BREAK> behind(&htim15, TIM_CHANNEL_1);
+Neopixel32bit<BEHIND_PIXEL_SUM> belt_behind(&htim2, TIM_CHANNEL_4);
+Neopixel32bit<FRONT_PIXEL_SUM> localization_front(&htim2, TIM_CHANNEL_1);
 
 /**
  * @brief 一定周期のLEDトグル
@@ -58,10 +65,22 @@ void setup()
 
 void control_led(LEDInformation& led_info)
 {
+    belt_power.set_range(led_info.belt_velocity, true);
+
     if (led_info.belt_initialization) {
+        behind_fill.set_range(1.0);
+        behind_fill.set_pixel_color(120, 0, 0);
+        belt_power.set_range(led_info.belt_velocity, true);
+        belt_power.set_pixel_color(120, 0, 0, true);
+    } else {
+        behind_fill.set_range(1.0);
         behind_fill.set_pixel_color(0, 120, 0);
-        behind_fill.to_pixels();
+        belt_power.set_range(led_info.belt_velocity, true);
+        belt_power.set_pixel_color(0, 120, 0, true);
     }
+
+    behind.set_pixels(behind_fill.to_pixels());
+    belt_behind.set_pixels(belt_power.to_pixels());
 }
 
 void loop()
