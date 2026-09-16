@@ -46,7 +46,7 @@ gn10_can::devices::LEDServer<LEDInformation> led_server_info(fdcan1_bus, 2);
 // neopixel
 Neopixel16bit<BEHIND_PIXEL_BREAK> behind(&htim15, TIM_CHANNEL_1);
 Neopixel32bit<BEHIND_PIXEL_SUM> belt_behind(&htim15, TIM_CHANNEL_1);
-Neopixel32bit<FRONT_PIXEL_SUM> localization_front(&htim2, TIM_CHANNEL_1);
+Neopixel32bit<FRONT_PIXEL_SUM> localization_front(&htim2, TIM_CHANNEL_4);
 
 void setup()
 {
