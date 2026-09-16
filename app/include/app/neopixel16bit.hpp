@@ -38,7 +38,7 @@ public:
     {
     }
 
-    bool set_pixels(std::array<Pixel, NumLED> pixels)
+    void set_pixels(std::array<Pixel, NumLED> pixels)
     {
         std::size_t index = 0;
 
