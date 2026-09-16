@@ -25,9 +25,14 @@ public:
 
     void set_bar_color(float belt_velocity, uint8_t r, uint8_t g, uint8_t b)
     {
-        uint16_t local_index =
-            conversion_.index_conversion(belt_velocity, true);  // 0 ~ (PixelNum-start_pixel_-1)
-        uint16_t index = bar_start_pixel_ + local_index;
+        uint16_t local_index = conversion_.index_conversion(belt_velocity, true);
+        uint16_t index       = bar_start_pixel_ + local_index;
+
+        for (uint16_t i = bar_start_pixel_; i < PixelNum; i++) {
+            pixels_[i].r = 0;
+            pixels_[i].g = 0;
+            pixels_[i].b = 0;
+        }
 
         for (uint16_t i = index; i < PixelNum; i++) {
             pixels_[i].r = r;

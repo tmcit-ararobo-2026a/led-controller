@@ -17,8 +17,8 @@
 #include "gn10_stm32_fdcan_driver/fdcan_driver.hpp"
 
 // 定数
-constexpr uint16_t BEHIND_PIXEL_SUM   = 75;
-constexpr uint16_t BEHIND_PIXEL_BREAK = 36;
+constexpr uint16_t BEHIND_PIXEL_SUM   = 20;
+constexpr uint16_t BEHIND_PIXEL_BREAK = 10;
 constexpr uint16_t FRONT_PIXEL_SUM    = 120;
 
 LEDIndexConversion belt_conversion(2.0f, 8.0f, BEHIND_PIXEL_SUM - BEHIND_PIXEL_BREAK);
@@ -91,10 +91,29 @@ void control_led_localization(robot_config::command_t& led_command)
 
 void loop()
 {
+    for (float i = 2.0f; i <= 8.0f; i += 1.0f) {
+        led_info.belt_initialization = true;
+        led_info.belt_velocity       = i;
+        control_led_belt(led_info);
+        HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_SET);
+        HAL_Delay(500);
+        HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_RESET);
+        HAL_Delay(500);
+    }
+    for (float i = 8.0f; i >= 2.0f; i -= 1.0f) {
+        led_info.belt_initialization = true;
+        led_info.belt_velocity       = i;
+        control_led_belt(led_info);
+        HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_SET);
+        HAL_Delay(500);
+        HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, GPIO_PIN_RESET);
+        HAL_Delay(500);
+    }
+    /*
     if (led_server_info.get_information(led_info)) {
         control_led_belt(led_info);
         HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
-    }
+    }*/
 
     led_command.bucket1_angle_yaw_rad = 0.3f;
     control_led_localization(led_command);
