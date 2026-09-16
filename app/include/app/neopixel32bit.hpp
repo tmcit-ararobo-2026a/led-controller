@@ -66,7 +66,7 @@ public:
         // 初回のみDMAを開始する（Circularモードなので停止命令は不要）
         if (!started_dma_) {
             HAL_TIM_PWM_Start_DMA(
-                htim_, channel_, reinterpret_cast<uint32_t*>(pulse_data_), BUFFER_SIZE * 2
+                htim_, channel_, reinterpret_cast<uint32_t*>(pulse_data_), BUFFER_SIZE
             );
             started_dma_ = true;
         }
