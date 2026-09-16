@@ -17,8 +17,8 @@
 #include "gn10_stm32_fdcan_driver/fdcan_driver.hpp"
 
 // 定数
-constexpr uint16_t BEHIND_PIXEL_SUM   = 20;
-constexpr uint16_t BEHIND_PIXEL_BREAK = 10;
+constexpr uint16_t BEHIND_PIXEL_SUM   = 75;
+constexpr uint16_t BEHIND_PIXEL_BREAK = 37;
 constexpr uint16_t FRONT_PIXEL_SUM    = 120;
 
 LEDIndexConversion belt_conversion(2.0f, 8.0f, BEHIND_PIXEL_SUM - BEHIND_PIXEL_BREAK);
@@ -53,10 +53,10 @@ void setup()
 void control_led_belt(LEDInformation& led_info)
 {
     if (!led_info.belt_initialization) {
-        belt_power.set_bar_color(led_info.belt_velocity, 120, 0, 0);
+        belt_power.set_bar_color_from_table(led_info.belt_velocity, 120, 0, 0);
         belt_power.fill_before_start(120, 0, 0);
     } else {
-        belt_power.set_bar_color(led_info.belt_velocity, 0, 120, 0);
+        belt_power.set_bar_color_from_table(led_info.belt_velocity, 0, 120, 0);
         belt_power.fill_before_start(0, 120, 0);
     }
     belt_behind.set_pixels(belt_power.to_pixels());
