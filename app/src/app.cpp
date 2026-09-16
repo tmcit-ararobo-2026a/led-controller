@@ -104,8 +104,8 @@ void loop()
         control_led_belt(led_info);
         HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
     }
-    led_command.bucket1_angle_yaw_rad = 0.3f;
-    control_led_localization(led_command);
+    // led_command.bucket1_angle_yaw_rad = 0.3f;
+    // control_led_localization(led_command);
 }
 
 extern "C" {
@@ -113,11 +113,13 @@ extern "C" {
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo0ITs)
 {
     (void)RxFifo0ITs;
+    HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
     if (process_fdcan_fifo(hfdcan, &hfdcan1, fdcan1_bus, FDCAN_RX_FIFO0)) return;
 }
 void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo1ITs)
 {
     (void)RxFifo1ITs;
+    HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
     if (process_fdcan_fifo(hfdcan, &hfdcan1, fdcan1_bus, FDCAN_RX_FIFO1)) return;
 }
 }
