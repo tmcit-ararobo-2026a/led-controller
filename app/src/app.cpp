@@ -18,15 +18,13 @@
 
 // 定数
 constexpr uint16_t BEHIND_PIXEL_SUM   = 75;
-constexpr uint16_t BEHIND_PIXEL_BREAK = 37;
+constexpr uint16_t BEHIND_PIXEL_BREAK = 36;
 constexpr uint16_t FRONT_PIXEL_SUM    = 120;
 
-LEDIndexConversion behind_conversion(0, 1.0, BEHIND_PIXEL_BREAK);
-LEDIndexConversion belt_conversion(2.0f, 8.0f, BEHIND_PIXEL_SUM);
+LEDIndexConversion belt_conversion(2.0f, 8.0f, BEHIND_PIXEL_SUM - BEHIND_PIXEL_BREAK);
 LEDIndexConversion localization_conversion(-0.7f, 0.7f, FRONT_PIXEL_SUM);
 
-BeltLEDSet<BEHIND_PIXEL_BREAK> behind_fill(behind_conversion);
-BeltLEDSet<BEHIND_PIXEL_SUM> belt_power(belt_conversion);
+BeltLEDSet<BEHIND_PIXEL_SUM> belt_power(belt_conversion, BEHIND_PIXEL_BREAK);
 
 // ターゲットごとに個別のLocalizationLEDSetを用意
 LocalizationLEDSet<FRONT_PIXEL_SUM> localization_flag(localization_conversion);
@@ -44,8 +42,7 @@ gn10_can::FDCANBus fdcan1_bus(fdcan1_driver);
 gn10_can::devices::LEDServer<LEDInformation> led_server_info(fdcan1_bus, 2);
 
 // neopixel
-Neopixel16bit<BEHIND_PIXEL_BREAK> behind(&htim15, TIM_CHANNEL_1);
-Neopixel32bit<BEHIND_PIXEL_SUM> belt_behind(&htim15, TIM_CHANNEL_1);
+Neopixel16bit<BEHIND_PIXEL_SUM> belt_behind(&htim15, TIM_CHANNEL_1);
 Neopixel32bit<FRONT_PIXEL_SUM> localization_front(&htim2, TIM_CHANNEL_4);
 
 void setup()
@@ -55,19 +52,13 @@ void setup()
 
 void control_led_belt(LEDInformation& led_info)
 {
-    belt_power.set_range(led_info.belt_velocity, true);
-
-    if (led_info.belt_initialization) {
-        behind_fill.set_range(1.0);
-        behind_fill.set_pixel_color(120, 0, 0);
-        belt_power.set_pixel_color(120, 0, 0, true);
+    if (!led_info.belt_initialization) {
+        belt_power.set_bar_color(led_info.belt_velocity, 120, 0, 0);
+        belt_power.fill_before_start(120, 0, 0);
     } else {
-        behind_fill.set_range(1.0);
-        behind_fill.set_pixel_color(0, 120, 0);
-        belt_power.set_pixel_color(0, 120, 0, true);
+        belt_power.set_bar_color(led_info.belt_velocity, 0, 120, 0);
+        belt_power.fill_before_start(0, 120, 0);
     }
-
-    behind.set_pixels(behind_fill.to_pixels());
     belt_behind.set_pixels(belt_power.to_pixels());
 }
 
@@ -104,7 +95,8 @@ void loop()
         control_led_belt(led_info);
         HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
     }
-    // led_command.bucket1_angle_yaw_rad = 0.3f;
+
+    led_command.bucket1_angle_yaw_rad = 0.3f;
     control_led_localization(led_command);
 }
 

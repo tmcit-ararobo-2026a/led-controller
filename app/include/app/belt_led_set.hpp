@@ -5,38 +5,35 @@
 #include "app/led_index_conversion.hpp"
 #include "app/pixel.hpp"
 
-// コンパイル時に配列のサイズ決めたいからtemplete
 template <uint16_t PixelNum>
 class BeltLEDSet
 {
 public:
-    BeltLEDSet(LEDIndexConversion& conversion) : conversion_(conversion) {}
-
-    void set_pixel_color(uint8_t r, uint8_t g, uint8_t b, bool inversion = false)
+    BeltLEDSet(LEDIndexConversion& conversion, uint16_t bar_start_pixel = 0)
+        : conversion_(conversion), bar_start_pixel_(bar_start_pixel)
     {
-        if (!inversion) {
-            for (uint16_t i = 0; i <= index_; i++) {
-                pixels_[i].r = r;
-                pixels_[i].g = g;
-                pixels_[i].b = b;
-            }
-        } else {
-            for (uint16_t i = index_; i < PixelNum; i++) {
-                pixels_[i].r = r;
-                pixels_[i].g = g;
-                pixels_[i].b = b;
-            }
+    }
+
+    void fill_before_start(uint8_t r, uint8_t g, uint8_t b)
+    {
+        for (uint16_t i = 0; i < bar_start_pixel_; i++) {
+            pixels_[i].r = r;
+            pixels_[i].g = g;
+            pixels_[i].b = b;
         }
     }
 
-    Pixel get_pixel_color() const
+    void set_bar_color(float belt_velocity, uint8_t r, uint8_t g, uint8_t b)
     {
-        return pixels_[index_];
-    }
+        uint16_t local_index =
+            conversion_.index_conversion(belt_velocity, true);  // 0 ~ (PixelNum-start_pixel_-1)
+        uint16_t index = bar_start_pixel_ + local_index;
 
-    void set_range(float belt_velocity, bool inversion = false)
-    {
-        index_ = conversion_.index_conversion(belt_velocity, inversion);
+        for (uint16_t i = index; i < PixelNum; i++) {
+            pixels_[i].r = r;
+            pixels_[i].g = g;
+            pixels_[i].b = b;
+        }
     }
 
     const std::array<Pixel, PixelNum>& to_pixels() const
@@ -45,7 +42,7 @@ public:
     }
 
 private:
+    uint16_t bar_start_pixel_;
     std::array<Pixel, PixelNum> pixels_{};
-    uint16_t index_ = 0;
     LEDIndexConversion conversion_;
 };
