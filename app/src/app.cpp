@@ -42,7 +42,6 @@ robot_config::command_t led_command;
 gn10_can::drivers::FDCANDriver fdcan1_driver(&hfdcan1);
 gn10_can::FDCANBus fdcan1_bus(fdcan1_driver);
 gn10_can::devices::LEDServer<LEDInformation> led_server_info(fdcan1_bus, 2);
-gn10_can::devices::LEDServer<robot_config::command_t> led_server_command(fdcan1_bus, 1);
 
 // neopixel
 Neopixel16bit<BEHIND_PIXEL_BREAK> behind(&htim15, TIM_CHANNEL_1);
@@ -105,10 +104,8 @@ void loop()
         control_led_belt(led_info);
         HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
     }
-    if (led_server_command.get_information(led_command)) {
-        control_led_localization(led_command);
-        HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
-    }
+    led_command.bucket1_angle_yaw_rad = 0.3f;
+    control_led_localization(led_command);
 }
 
 extern "C" {
