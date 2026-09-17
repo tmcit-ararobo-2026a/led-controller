@@ -5,18 +5,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(app STATIC
     src/app.cpp
-    src/neopixel_16bit.cpp
-    src/neopixel_32bit.cpp
-    ${CMAKE_SOURCE_DIR}/gn10_can/drivers/stm32_fdcan/driver_stm32_fdcan.cpp
+    src/led_index_conversion.cpp
 
 )
 
 target_include_directories(app PUBLIC
     include
-    ${CMAKE_SOURCE_DIR}/gn10-can    
-    ${CMAKE_SOURCE_DIR}/gn10-stm32-fdcan-driver    
-
-
 )
 
 target_link_libraries(app PRIVATE stm32cubemx)

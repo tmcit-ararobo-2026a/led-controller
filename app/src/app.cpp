@@ -1,237 +1,161 @@
 #include "app/app.hpp"
 
-#include <cmath>
-
+/* ---app--- */
+// ledの範囲と色の設定をするやつ
+#include "app/belt_led_set.hpp"
+#include "app/led_blend.hpp"
+#include "app/localization_led_set.hpp"
+// 構造体共通設定
 #include "app/led_information.hpp"
-#include "app/neopixel_16bit.hpp"
-#include "app/neopixel_32bit.hpp"
 #include "app/robot_config.hpp"
-#include "fdcan.h"
+// neopixel
+#include "app/neopixel16bit.hpp"
+#include "app/neopixel32bit.hpp"
+// gn10 submodule
 #include "gn10_can/devices/led_server.hpp"
 #include "gn10_stm32_fdcan_driver/can_callback_helper.hpp"
 #include "gn10_stm32_fdcan_driver/fdcan_driver.hpp"
-#include "tim.h"
 
+// 定数
+constexpr uint16_t BEHIND_PIXEL_SUM   = 75;
+constexpr uint16_t BEHIND_PIXEL_BREAK = 37;
+constexpr uint16_t FRONT_PIXEL_SUM    = 115;
+
+LEDIndexConversion belt_conversion(2.0f, 8.0f, BEHIND_PIXEL_SUM - BEHIND_PIXEL_BREAK);
+LEDIndexConversion localization_conversion(-0.7f, 0.7f, FRONT_PIXEL_SUM);
+
+BeltLEDSet<BEHIND_PIXEL_SUM> belt_power(belt_conversion, BEHIND_PIXEL_BREAK);
+
+// ターゲットごとに個別のLocalizationLEDSetを用意
+LocalizationLEDSet<FRONT_PIXEL_SUM> localization_flag(localization_conversion);
+LocalizationLEDSet<FRONT_PIXEL_SUM> localization_bucket1(localization_conversion);
+LocalizationLEDSet<FRONT_PIXEL_SUM> localization_bucket2(localization_conversion);
+LocalizationLEDSet<FRONT_PIXEL_SUM> localization_bucket3(localization_conversion);
+LocalizationLEDSet<FRONT_PIXEL_SUM> localization_move_bucket(localization_conversion);
+
+LEDInformation led_info;
+
+// gn10_can
 gn10_can::drivers::FDCANDriver fdcan1_driver(&hfdcan1);
 gn10_can::FDCANBus fdcan1_bus(fdcan1_driver);
 gn10_can::devices::LEDServer<LEDInformation> led_server_info(fdcan1_bus, 2);
-gn10_can::devices::LEDServer<robot_config::command_t> led_server_command(fdcan1_bus, 1);
 
-// LED受信構造体
-LEDInformation led_info;
-robot_config::command_t led_command;
-
-Neopixel16bit behind(&htim15, TIM_CHANNEL_1, 120);
-Neopixel32bit front(&htim2, TIM_CHANNEL_4, 121);
-Neopixel32bit localization(&htim2, TIM_CHANNEL_1, 28);
-
-constexpr uint32_t HEARTBEAT_TOGGLE_INTERVAL_MS = 500;
-uint32_t heartbeat_last_toggle_time_ms          = 0;
-
-uint8_t prev_localization_pixel = 14;
-bool prev_reverse_initialized   = false;
-bool prev_reverse               = false;
-
-/**
- * @brief 一定周期のLEDトグル
- */
-void update_heartbeat_led()
-{
-    const uint32_t now_ms = HAL_GetTick();
-    if ((now_ms - heartbeat_last_toggle_time_ms) >= HEARTBEAT_TOGGLE_INTERVAL_MS) {
-        heartbeat_last_toggle_time_ms = now_ms;
-
-        // HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
-    }
-}
-
-enum class TargetLEDColor : uint8_t {
-    Bucket1,
-    Bucket2,
-    Bucket3,
-    Desk,
-    Flag,
-} target;
-
-void update_led_info(LEDInformation& led_info)
-{
-    if (led_info.air_injection) {
-        front.set_pixel_color(0, 120, 60, 60, 0);
-    } else {
-        front.set_pixel_color(0, 120, 0, 60, 60);
-    }
-
-    if (!led_info.belt_initialization) {
-        if (led_info.belt_velocity <= 2.0f) {
-            behind.set_pixel_color(72, 75, 120, 0, 0);
-            behind.set_pixel_color(37, 71, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 2.5f) {
-            behind.set_pixel_color(69, 75, 120, 0, 0);
-            behind.set_pixel_color(37, 68, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 3.0f) {
-            behind.set_pixel_color(65, 75, 120, 0, 0);
-            behind.set_pixel_color(37, 64, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 3.5f) {
-            behind.set_pixel_color(62, 75, 120, 0, 0);
-            behind.set_pixel_color(37, 61, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 4.0f) {
-            behind.set_pixel_color(58, 75, 120, 0, 0);
-            behind.set_pixel_color(37, 57, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 4.5f) {
-            behind.set_pixel_color(55, 75, 120, 0, 0);
-            behind.set_pixel_color(37, 54, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 5.0f) {
-            behind.set_pixel_color(52, 75, 120, 0, 0);
-            behind.set_pixel_color(37, 51, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 5.5f) {
-            behind.set_pixel_color(48, 75, 120, 0, 0);
-            behind.set_pixel_color(37, 47, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 6.0f) {
-            behind.set_pixel_color(45, 75, 120, 0, 0);
-            behind.set_pixel_color(37, 44, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 6.5f) {
-            behind.set_pixel_color(42, 75, 120, 0, 0);
-            behind.set_pixel_color(37, 41, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 7.0f) {
-            behind.set_pixel_color(38, 75, 120, 0, 0);
-            behind.set_pixel_color(37, 37, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 7.5f) {
-            behind.set_pixel_color(37, 75, 120, 0, 0);
-        } else if (led_info.belt_velocity <= 8.0f) {
-            behind.set_pixel_color(37, 75, 120, 0, 0);
-        } else {
-            behind.set_pixel_color(37, 75, 120, 0, 0);
-        }
-        behind.set_pixel_color(0, 36, 120, 0, 0);
-    }
-
-    else {
-        if (led_info.belt_velocity <= 2.0f) {
-            behind.set_pixel_color(72, 75, 0, 120, 0);
-            behind.set_pixel_color(37, 71, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 2.5f) {
-            behind.set_pixel_color(69, 75, 0, 120, 0);
-            behind.set_pixel_color(37, 68, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 3.0f) {
-            behind.set_pixel_color(66, 75, 0, 120, 0);
-            behind.set_pixel_color(37, 65, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 3.5f) {
-            behind.set_pixel_color(63, 75, 0, 120, 0);
-            behind.set_pixel_color(37, 62, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 4.0f) {
-            behind.set_pixel_color(60, 75, 0, 120, 0);
-            behind.set_pixel_color(37, 59, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 4.5f) {
-            behind.set_pixel_color(57, 75, 0, 120, 0);
-            behind.set_pixel_color(37, 56, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 5.0f) {
-            behind.set_pixel_color(54, 75, 0, 120, 0);
-            behind.set_pixel_color(37, 53, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 5.5f) {
-            behind.set_pixel_color(51, 75, 0, 120, 0);
-            behind.set_pixel_color(37, 50, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 6.0f) {
-            behind.set_pixel_color(48, 75, 0, 120, 0);
-            behind.set_pixel_color(37, 47, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 6.5f) {
-            behind.set_pixel_color(45, 75, 0, 120, 0);
-            behind.set_pixel_color(37, 44, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 7.0f) {
-            behind.set_pixel_color(42, 75, 0, 120, 0);
-            behind.set_pixel_color(37, 41, 0, 0, 0);
-        } else if (led_info.belt_velocity <= 7.5f) {
-            behind.set_pixel_color(37, 75, 0, 120, 0);
-        } else if (led_info.belt_velocity <= 8.0f) {
-            behind.set_pixel_color(37, 75, 0, 120, 0);
-        } else {
-            behind.set_pixel_color(37, 75, 0, 120, 0);
-        }
-        behind.set_pixel_color(0, 36, 0, 120, 0);
-    }
-    /*
-        if (led_info.battery_voltage[0] <= 18.8f) {
-            behind.set_pixel_color(0, 11, 120, 0, 0);
-        } else if (led_info.battery_voltage[0] <= 19.5f) {
-            behind.set_pixel_color(0, 3, 0, 0, 120);
-            behind.set_pixel_color(4, 11, 0, 0, 0);
-        } else if (led_info.battery_voltage[0] <= 20.5f) {
-            behind.set_pixel_color(0, 7, 0, 0, 120);
-            behind.set_pixel_color(7, 11, 0, 0, 0);
-        } else {
-            behind.set_pixel_color(0, 11, 0, 0, 120);
-        }
-
-        if (led_info.battery_voltage[1] <= 18.8f) {
-            behind.set_pixel_color(12, 24, 120, 0, 0);
-        } else if (led_info.battery_voltage[1] <= 19.5f) {
-            behind.set_pixel_color(12, 16, 0, 0, 120);
-            behind.set_pixel_color(17, 24, 0, 0, 0);
-        } else if (led_info.battery_voltage[1] <= 20.5f) {
-            behind.set_pixel_color(12, 20, 0, 0, 120);
-            behind.set_pixel_color(21, 24, 0, 0, 0);
-        } else {
-            behind.set_pixel_color(12, 24, 0, 0, 120);
-        }
-
-        if (led_info.battery_voltage[2] <= 18.8f) {
-            behind.set_pixel_color(25, 36, 120, 0, 0);
-        } else if (led_info.battery_voltage[2] <= 19.5f) {
-            behind.set_pixel_color(25, 29, 0, 120, 0);
-            behind.set_pixel_color(30, 36, 0, 0, 0);
-        } else if (led_info.battery_voltage[2] <= 20.5f) {
-            behind.set_pixel_color(25, 33, 0, 120, 0);
-            behind.set_pixel_color(34, 36, 0, 0, 0);
-        } else {
-            behind.set_pixel_color(25, 36, 0, 120, 0);
-        }*/
-}
+// neopixel
+Neopixel16bit<BEHIND_PIXEL_SUM> belt_behind(&htim15, TIM_CHANNEL_1);
+Neopixel32bit<FRONT_PIXEL_SUM> localization_front(&htim2, TIM_CHANNEL_4);
 
 void setup()
 {
     fdcan1_driver.init();
-    behind.LED_setup();
-    front.LED_setup();
-    heartbeat_last_toggle_time_ms = HAL_GetTick();
+}
+
+void control_led_belt(LEDInformation& led_info)
+{
+    if (!led_info.belt_initialization) {
+        belt_power.set_bar_color_from_table(led_info.belt_velocity, 120, 0, 0);
+        belt_power.fill_before_start(120, 0, 0);
+    } else {
+        belt_power.set_bar_color_from_table(led_info.belt_velocity, 0, 120, 0);
+        belt_power.fill_before_start(0, 120, 0);
+    }
+    belt_behind.set_pixels(belt_power.to_pixels());
+}
+
+bool is_in_range(float value, float min, float max)
+{
+    return value >= min && value <= max;
+}
+
+void control_led_localization(LEDInformation& localization)
+{
+    constexpr float RANGE_MIN = -0.7f;
+    constexpr float RANGE_MAX = 0.7f;
+
+    bool any_in_range = false;
+
+    if (is_in_range(localization.flag_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
+        localization_flag.set_range(localization.flag_angle_yaw_rad);
+        localization_flag.set_pixel_color(0, 0, 120);
+        any_in_range = true;
+    } else {
+        localization_flag.set_pixel_color(0, 0, 0);
+    }
+
+    if (is_in_range(localization.bucket1_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
+        localization_bucket1.set_range(localization.bucket1_angle_yaw_rad);
+        localization_bucket1.set_pixel_color(0, 120, 0);
+        any_in_range = true;
+    } else {
+        localization_bucket1.set_pixel_color(0, 0, 0);
+    }
+
+    if (is_in_range(localization.bucket2_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
+        localization_bucket2.set_range(localization.bucket2_angle_yaw_rad);
+        localization_bucket2.set_pixel_color(120, 0, 0);
+        any_in_range = true;
+    } else {
+        localization_bucket2.set_pixel_color(0, 0, 0);
+    }
+
+    if (is_in_range(localization.bucket3_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
+        localization_bucket3.set_range(localization.bucket3_angle_yaw_rad);
+        localization_bucket3.set_pixel_color(120, 0, 0);
+        any_in_range = true;
+    } else {
+        localization_bucket3.set_pixel_color(0, 0, 0);
+    }
+
+    if (is_in_range(localization.move_bucket_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
+        localization_move_bucket.set_range(localization.move_bucket_angle_yaw_rad);
+        localization_move_bucket.set_pixel_color(120, 120, 0);
+        any_in_range = true;
+    } else {
+        localization_move_bucket.set_pixel_color(0, 0, 0);
+    }
+
+    auto blended = blend_pixels<FRONT_PIXEL_SUM>(
+        localization_flag,
+        localization_bucket1,
+        localization_bucket2,
+        localization_bucket3,
+        localization_move_bucket
+    );
+
+    for (uint16_t i = 0; i < 15; i++) {
+        blended[i].r = 120;
+        blended[i].g = 0;
+        blended[i].b = 0;
+
+        blended[FRONT_PIXEL_SUM - 1 - i].r = 120;
+        blended[FRONT_PIXEL_SUM - 1 - i].g = 0;
+        blended[FRONT_PIXEL_SUM - 1 - i].b = 0;
+    }
+
+    localization_front.set_pixels(blended);
 }
 
 void loop()
 {
     if (led_server_info.get_information(led_info)) {
-        update_led_info(led_info);
+        control_led_belt(led_info);
+        control_led_localization(led_info);
+
         HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
     }
-    led_command.bucket1_angle_yaw_rad = M_PI / 8;
-    // update_localization_led(led_command.bucket1_angle_yaw_rad, TargetLEDColor::Bucket1);
-    //   update_localization_led(led_command.bucket2_angle_yaw_rad, TargetLEDColor::Bucket2);
-    //   update_localization_led(led_command.bucket3_angle_yaw_rad, TargetLEDColor::Bucket3);
-    //   update_localization_led(led_command.desk_angle_yaw_rad, TargetLEDColor::Desk);
-    //   update_localization_led(led_command.flag_angle_yaw_rad, TargetLEDColor::Flag);
-
-    HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
-
-    localization.show();
-    behind.show();
-    front.show();
-    HAL_Delay(10);
-    update_heartbeat_led();
 }
 
 extern "C" {
 
-void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)
-{
-    behind.pulse_sent_callback(htim);
-    front.pulse_sent_callback(htim);
-    localization.pulse_sent_callback(htim);
-}
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo0ITs)
 {
     (void)RxFifo0ITs;
+    HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
     if (process_fdcan_fifo(hfdcan, &hfdcan1, fdcan1_bus, FDCAN_RX_FIFO0)) return;
 }
 void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo1ITs)
 {
     (void)RxFifo1ITs;
+    HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
     if (process_fdcan_fifo(hfdcan, &hfdcan1, fdcan1_bus, FDCAN_RX_FIFO1)) return;
 }
 }
