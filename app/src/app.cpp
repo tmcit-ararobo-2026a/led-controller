@@ -49,18 +49,6 @@ void setup()
     fdcan1_driver.init();
 }
 
-void control_led_belt(LEDInformation& led_info)
-{
-    if (!led_info.belt_initialization) {
-        belt_power.set_bar_color_from_table(led_info.belt_velocity, 120, 0, 0);
-        belt_power.fill_before_start(120, 0, 0);
-    } else {
-        belt_power.set_bar_color_from_table(led_info.belt_velocity, 0, 120, 0);
-        belt_power.fill_before_start(0, 120, 0);
-    }
-    belt_behind.set_pixels(belt_power.to_pixels());
-}
-
 bool is_in_range(float value, float min, float max)
 {
     return value >= min && value <= max;
@@ -133,12 +121,24 @@ void control_led_localization(LEDInformation& localization)
 
     localization_front.set_pixels(blended);
 }
+void control_led_belt(LEDInformation& led_info)
+{
+    control_led_localization(led_info);
+
+    if (!led_info.belt_initialization) {
+        belt_power.set_bar_color_from_table(led_info.belt_velocity, 120, 0, 0);
+        belt_power.fill_before_start(120, 0, 0);
+    } else {
+        belt_power.set_bar_color_from_table(led_info.belt_velocity, 0, 120, 0);
+        belt_power.fill_before_start(0, 120, 0);
+    }
+    belt_behind.set_pixels(belt_power.to_pixels());
+}
 
 void loop()
 {
     if (led_server_info.get_information(led_info)) {
         control_led_belt(led_info);
-        control_led_localization(led_info);
 
         HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
     }
