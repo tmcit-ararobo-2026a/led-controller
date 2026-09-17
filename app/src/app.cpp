@@ -109,22 +109,24 @@ void control_led_localization(LEDInformation& localization)
         localization_move_bucket
     );
 
-    for (uint16_t i = 0; i < 15; i++) {
-        blended[i].r = 120;
-        blended[i].g = 0;
-        blended[i].b = 0;
+    // 全部範囲外だったときだけ、端15個ずつを赤で上書き
+    if (!any_in_range) {
+        for (uint16_t i = 0; i < 15; i++) {
+            blended[i].r = 120;
+            blended[i].g = 0;
+            blended[i].b = 0;
 
-        blended[FRONT_PIXEL_SUM - 1 - i].r = 120;
-        blended[FRONT_PIXEL_SUM - 1 - i].g = 0;
-        blended[FRONT_PIXEL_SUM - 1 - i].b = 0;
+            blended[FRONT_PIXEL_SUM - 1 - i].r = 120;
+            blended[FRONT_PIXEL_SUM - 1 - i].g = 0;
+            blended[FRONT_PIXEL_SUM - 1 - i].b = 0;
+        }
     }
 
     localization_front.set_pixels(blended);
 }
+
 void control_led_belt(LEDInformation& led_info)
 {
-    control_led_localization(led_info);
-
     if (!led_info.belt_initialization) {
         belt_power.set_bar_color_from_table(led_info.belt_velocity, 120, 0, 0);
         belt_power.fill_before_start(120, 0, 0);
@@ -139,6 +141,7 @@ void loop()
 {
     if (led_server_info.get_information(led_info)) {
         control_led_belt(led_info);
+        control_led_localization(led_info);
 
         HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
     }
