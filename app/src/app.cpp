@@ -19,7 +19,7 @@
 // 定数
 constexpr uint16_t BEHIND_PIXEL_SUM   = 75;
 constexpr uint16_t BEHIND_PIXEL_BREAK = 37;
-constexpr uint16_t FRONT_PIXEL_SUM    = 120;
+constexpr uint16_t FRONT_PIXEL_SUM    = 115;
 
 LEDIndexConversion belt_conversion(2.0f, 8.0f, BEHIND_PIXEL_SUM - BEHIND_PIXEL_BREAK);
 LEDIndexConversion localization_conversion(-0.7f, 0.7f, FRONT_PIXEL_SUM);
@@ -121,27 +121,14 @@ void control_led_localization(LEDInformation& localization)
         localization_move_bucket
     );
 
-    // 全部範囲外だったときだけ、端3個を赤で上書き
-    if (!any_in_range) {
-        blended[0].r = 120;
-        blended[0].g = 0;
-        blended[0].b = 0;
-        blended[1].r = 120;
-        blended[1].g = 0;
-        blended[1].b = 0;
-        blended[2].r = 120;
-        blended[2].g = 0;
-        blended[2].b = 0;
+    for (uint16_t i = 0; i < 15; i++) {
+        blended[i].r = 120;
+        blended[i].g = 0;
+        blended[i].b = 0;
 
-        blended[FRONT_PIXEL_SUM - 1].r = 120;
-        blended[FRONT_PIXEL_SUM - 1].g = 0;
-        blended[FRONT_PIXEL_SUM - 1].b = 0;
-        blended[FRONT_PIXEL_SUM - 2].r = 120;
-        blended[FRONT_PIXEL_SUM - 2].g = 0;
-        blended[FRONT_PIXEL_SUM - 2].b = 0;
-        blended[FRONT_PIXEL_SUM - 3].r = 120;
-        blended[FRONT_PIXEL_SUM - 3].g = 0;
-        blended[FRONT_PIXEL_SUM - 3].b = 0;
+        blended[FRONT_PIXEL_SUM - 1 - i].r = 120;
+        blended[FRONT_PIXEL_SUM - 1 - i].g = 0;
+        blended[FRONT_PIXEL_SUM - 1 - i].b = 0;
     }
 
     localization_front.set_pixels(blended);
