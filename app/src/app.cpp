@@ -75,7 +75,7 @@ void control_led_localization(LEDInformation& localization)
 
     if (is_in_range(localization.flag_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
         localization_flag.set_range(localization.flag_angle_yaw_rad);
-        localization_flag.set_pixel_color(0, 0, 255);
+        localization_flag.set_pixel_color(0, 0, 120);
         any_in_range = true;
     } else {
         localization_flag.set_pixel_color(0, 0, 0);
@@ -83,16 +83,15 @@ void control_led_localization(LEDInformation& localization)
 
     if (is_in_range(localization.bucket1_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
         localization_bucket1.set_range(localization.bucket1_angle_yaw_rad);
-        localization_bucket1.set_pixel_color(0, 255, 0);
+        localization_bucket1.set_pixel_color(0, 120, 0);
         any_in_range = true;
     } else {
         localization_bucket1.set_pixel_color(0, 0, 0);
     }
 
-
     if (is_in_range(localization.bucket2_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
         localization_bucket2.set_range(localization.bucket2_angle_yaw_rad);
-        localization_bucket2.set_pixel_color(255, 0, 0);
+        localization_bucket2.set_pixel_color(120, 0, 0);
         any_in_range = true;
     } else {
         localization_bucket2.set_pixel_color(0, 0, 0);
@@ -100,7 +99,7 @@ void control_led_localization(LEDInformation& localization)
 
     if (is_in_range(localization.bucket3_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
         localization_bucket3.set_range(localization.bucket3_angle_yaw_rad);
-        localization_bucket3.set_pixel_color(255, 0, 0);
+        localization_bucket3.set_pixel_color(120, 0, 0);
         any_in_range = true;
     } else {
         localization_bucket3.set_pixel_color(0, 0, 0);
@@ -108,7 +107,7 @@ void control_led_localization(LEDInformation& localization)
 
     if (is_in_range(localization.move_bucket_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
         localization_move_bucket.set_range(localization.move_bucket_angle_yaw_rad);
-        localization_move_bucket.set_pixel_color(255, 255, 0);
+        localization_move_bucket.set_pixel_color(120, 120, 0);
         any_in_range = true;
     } else {
         localization_move_bucket.set_pixel_color(0, 0, 0);
@@ -124,23 +123,23 @@ void control_led_localization(LEDInformation& localization)
 
     // 全部範囲外だったときだけ、端3個を赤で上書き
     if (!any_in_range) {
-        blended[0].r = 255;
+        blended[0].r = 120;
         blended[0].g = 0;
         blended[0].b = 0;
-        blended[1].r = 255;
+        blended[1].r = 120;
         blended[1].g = 0;
         blended[1].b = 0;
-        blended[2].r = 255;
+        blended[2].r = 120;
         blended[2].g = 0;
         blended[2].b = 0;
 
-        blended[FRONT_PIXEL_SUM - 1].r = 255;
+        blended[FRONT_PIXEL_SUM - 1].r = 120;
         blended[FRONT_PIXEL_SUM - 1].g = 0;
         blended[FRONT_PIXEL_SUM - 1].b = 0;
-        blended[FRONT_PIXEL_SUM - 2].r = 255;
+        blended[FRONT_PIXEL_SUM - 2].r = 120;
         blended[FRONT_PIXEL_SUM - 2].g = 0;
         blended[FRONT_PIXEL_SUM - 2].b = 0;
-        blended[FRONT_PIXEL_SUM - 3].r = 255;
+        blended[FRONT_PIXEL_SUM - 3].r = 120;
         blended[FRONT_PIXEL_SUM - 3].g = 0;
         blended[FRONT_PIXEL_SUM - 3].b = 0;
     }
