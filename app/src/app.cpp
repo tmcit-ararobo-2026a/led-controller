@@ -89,6 +89,7 @@ void control_led_localization(LEDInformation& localization)
         localization_bucket1.set_pixel_color(0, 0, 0);
     }
 
+
     if (is_in_range(localization.bucket2_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
         localization_bucket2.set_range(localization.bucket2_angle_yaw_rad);
         localization_bucket2.set_pixel_color(255, 0, 0);
