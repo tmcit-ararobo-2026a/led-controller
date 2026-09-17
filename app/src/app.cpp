@@ -19,7 +19,7 @@
 // 定数
 constexpr uint16_t BEHIND_PIXEL_SUM   = 75;
 constexpr uint16_t BEHIND_PIXEL_BREAK = 37;
-constexpr uint16_t FRONT_PIXEL_SUM    = 22;
+constexpr uint16_t FRONT_PIXEL_SUM    = 120;
 
 LEDIndexConversion belt_conversion(2.0f, 8.0f, BEHIND_PIXEL_SUM - BEHIND_PIXEL_BREAK);
 LEDIndexConversion localization_conversion(-0.7f, 0.7f, FRONT_PIXEL_SUM);
