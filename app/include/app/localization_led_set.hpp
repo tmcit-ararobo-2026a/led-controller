@@ -16,7 +16,23 @@ public:
     {
         pixels_.fill(Pixel{0, 0, 0});
 
-        static constexpr std::array<float, 5> bright_ratio = {1.0f, 0.7f, 0.5f, 0.3f, 0.15f};
+        static constexpr std::array<float, 15> bright_ratio = {
+            1.0f,
+            0.95f,
+            0.9f,
+            0.85f,
+            0.8f,
+            0.75f,
+            0.7f,
+            0.65f,
+            0.6f,
+            0.55f,
+            0.5f,
+            0.4f,
+            0.3f,
+            0.2f,
+            0.1f
+        };
 
         for (int distance = -static_cast<int>(bright_ratio.size()) + 1;
              distance <= static_cast<int>(bright_ratio.size()) - 1;

@@ -109,6 +109,16 @@ void control_led_localization(LEDInformation& localization)
         localization_move_bucket
     );
 
+    if (!localization.flag_angle_yaw_rad && !localization.bucket1_angle_yaw_rad &&
+        !localization.bucket2_angle_yaw_rad && !localization.bucket3_angle_yaw_rad &&
+        !localization.move_bucket_angle_yaw_rad) {
+        for (uint16_t i = 0; i < FRONT_PIXEL_SUM; i++) {
+            blended[i].r = 0;
+            blended[i].g = 120;
+            blended[i].b = 120;
+        }
+    }
+
     // 全部範囲外だったときだけ、端15個ずつを赤で上書き
     if (!any_in_range) {
         for (uint16_t i = 0; i < 15; i++) {
