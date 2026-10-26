@@ -63,7 +63,7 @@ public:
          }
     };
 
-        const std::array<Pixel, PixelNum>& to_pixels() const
+    const std::array<Pixel, PixelNum>& to_pixels() const
     {
         return pixels_;
     }
@@ -94,7 +94,7 @@ public:
     }
 
 private:
+    LEDIndexConversion conversion_;
     uint16_t bar_start_pixel_;
     std::array<Pixel, PixelNum> pixels_{};
-    LEDIndexConversion conversion_;
 };

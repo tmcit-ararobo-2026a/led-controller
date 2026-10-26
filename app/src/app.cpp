@@ -7,7 +7,6 @@
 #include "app/localization_led_set.hpp"
 // 構造体共通設定
 #include "app/led_information.hpp"
-#include "app/robot_config.hpp"
 // neopixel
 #include "app/neopixel16bit.hpp"
 #include "app/neopixel32bit.hpp"
