@@ -17,8 +17,8 @@ private:
     static constexpr std::size_t BIT_LEN_PER_PIXEL = 24;
     static constexpr std::size_t BUFFER_SIZE       = NumLED * BIT_LEN_PER_PIXEL + RESET_SLOTS;
 
-    uint32_t pulse_data_[BUFFER_SIZE] = {0};  // 送信用パルス幅データ
-    volatile bool started_dma_        = false;
+    alignas(4) uint32_t pulse_data_[BUFFER_SIZE] = {0};  // 送信用パルス幅データ
+    volatile bool started_dma_                   = false;
 
     // パルス幅（タイマーのARR/PSC設定に合わせ変更可能）
     uint32_t high_count_ = 19;  // 1を送信するときのパルス幅
@@ -30,7 +30,7 @@ public:
     {
     }
 
-    void set_pixels(std::array<Pixel, NumLED> pixels)
+    void set_pixels(const std::array<Pixel, NumLED>& pixels)
     {
         std::size_t index = 0;
 
@@ -55,9 +55,7 @@ public:
 
         // 初回のみDMAを開始する（Circularモードなので停止命令は不要）
         if (!started_dma_) {
-            HAL_TIM_PWM_Start_DMA(
-                htim_, channel_, reinterpret_cast<uint32_t*>(pulse_data_), BUFFER_SIZE
-            );
+            HAL_TIM_PWM_Start_DMA(htim_, channel_, pulse_data_, BUFFER_SIZE);
             started_dma_ = true;
         }
     }
