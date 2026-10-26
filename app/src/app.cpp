@@ -21,8 +21,11 @@ constexpr uint16_t BEHIND_PIXEL_SUM   = 75;
 constexpr uint16_t BEHIND_PIXEL_BREAK = 37;
 constexpr uint16_t FRONT_PIXEL_SUM    = 115;
 
+constexpr float RANGE_MIN = -127.0f;
+constexpr float RANGE_MAX = 127.0f;
+
 LEDIndexConversion belt_conversion(2.0f, 8.0f, BEHIND_PIXEL_SUM - BEHIND_PIXEL_BREAK);
-LEDIndexConversion localization_conversion(-0.7f, 0.7f, FRONT_PIXEL_SUM);
+LEDIndexConversion localization_conversion(RANGE_MIN, RANGE_MAX, FRONT_PIXEL_SUM);
 
 BeltLEDSet<BEHIND_PIXEL_SUM> belt_power(belt_conversion, BEHIND_PIXEL_BREAK);
 
@@ -56,45 +59,42 @@ bool is_in_range(float value, float min, float max)
 
 void control_led_localization(LEDInformation& localization)
 {
-    constexpr float RANGE_MIN = -0.7f;
-    constexpr float RANGE_MAX = 0.7f;
-
     bool any_in_range = false;
 
-    if (is_in_range(localization.flag_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
-        localization_flag.set_range(localization.flag_angle_yaw_rad);
+    if (is_in_range(localization.flag_angle_yaw, RANGE_MIN, RANGE_MAX)) {
+        localization_flag.set_range(localization.flag_angle_yaw);
         localization_flag.set_pixel_color(0, 0, 120);
         any_in_range = true;
     } else {
         localization_flag.set_pixel_color(0, 0, 0);
     }
 
-    if (is_in_range(localization.bucket1_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
-        localization_bucket1.set_range(localization.bucket1_angle_yaw_rad);
+    if (is_in_range(localization.bucket1_angle_yaw, RANGE_MIN, RANGE_MAX)) {
+        localization_bucket1.set_range(localization.bucket1_angle_yaw);
         localization_bucket1.set_pixel_color(0, 120, 0);
         any_in_range = true;
     } else {
         localization_bucket1.set_pixel_color(0, 0, 0);
     }
 
-    if (is_in_range(localization.bucket2_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
-        localization_bucket2.set_range(localization.bucket2_angle_yaw_rad);
+    if (is_in_range(localization.bucket2_angle_yaw, RANGE_MIN, RANGE_MAX)) {
+        localization_bucket2.set_range(localization.bucket2_angle_yaw);
         localization_bucket2.set_pixel_color(120, 0, 0);
         any_in_range = true;
     } else {
         localization_bucket2.set_pixel_color(0, 0, 0);
     }
 
-    if (is_in_range(localization.bucket3_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
-        localization_bucket3.set_range(localization.bucket3_angle_yaw_rad);
+    if (is_in_range(localization.bucket3_angle_yaw, RANGE_MIN, RANGE_MAX)) {
+        localization_bucket3.set_range(localization.bucket3_angle_yaw);
         localization_bucket3.set_pixel_color(120, 0, 0);
         any_in_range = true;
     } else {
         localization_bucket3.set_pixel_color(0, 0, 0);
     }
 
-    if (is_in_range(localization.move_bucket_angle_yaw_rad, RANGE_MIN, RANGE_MAX)) {
-        localization_move_bucket.set_range(localization.move_bucket_angle_yaw_rad);
+    if (is_in_range(localization.move_bucket_angle_yaw, RANGE_MIN, RANGE_MAX)) {
+        localization_move_bucket.set_range(localization.move_bucket_angle_yaw);
         localization_move_bucket.set_pixel_color(120, 120, 0);
         any_in_range = true;
     } else {
@@ -109,9 +109,9 @@ void control_led_localization(LEDInformation& localization)
         localization_move_bucket
     );
 
-    if (!localization.flag_angle_yaw_rad && !localization.bucket1_angle_yaw_rad &&
-        !localization.bucket2_angle_yaw_rad && !localization.bucket3_angle_yaw_rad &&
-        !localization.move_bucket_angle_yaw_rad) {
+    if (localization.flag_angle_yaw == INT8_MIN && localization.bucket1_angle_yaw == INT8_MIN &&
+        localization.bucket2_angle_yaw == INT8_MIN && localization.bucket3_angle_yaw == INT8_MIN &&
+        localization.move_bucket_angle_yaw == INT8_MIN) {
         for (uint16_t i = 0; i < FRONT_PIXEL_SUM; i++) {
             blended[i].r = 0;
             blended[i].g = 120;
