@@ -17,8 +17,8 @@ private:
     static constexpr std::size_t BIT_LEN_PER_PIXEL = 24;
     static constexpr std::size_t BUFFER_SIZE       = NumLED * BIT_LEN_PER_PIXEL + RESET_SLOTS;
 
-    uint16_t pulse_data_[BUFFER_SIZE] = {0};  // 送信用パルス幅データ
-    volatile bool started_dma_        = false;
+    alignas(2) uint16_t pulse_data_[BUFFER_SIZE] = {0};  // 送信用パルス幅データ
+    volatile bool started_dma_                   = false;
 
     // パルス幅（タイマーのARR/PSC設定に合わせ変更可能）
     uint16_t high_count_ = 19;  // 1を送信するときのパルス幅
@@ -38,7 +38,7 @@ public:
     {
     }
 
-    void set_pixels(std::array<Pixel, NumLED> pixels)
+    void set_pixels(const std::array<Pixel, NumLED>& pixels)
     {
         std::size_t index = 0;
 
