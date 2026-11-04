@@ -19,6 +19,7 @@
 constexpr uint16_t BEHIND_PIXEL_SUM   = 75;
 constexpr uint16_t BEHIND_PIXEL_BREAK = 37;
 constexpr uint16_t FRONT_PIXEL_SUM    = 115;
+constexpr uint16_t UP_PIXEL_SUM       = 26;
 
 constexpr float RANGE_MIN = -127.0f;
 constexpr float RANGE_MAX = 127.0f;
@@ -45,6 +46,7 @@ gn10_can::devices::LEDServer<LEDInformation> led_server_info(fdcan1_bus, 2);
 // neopixel
 Neopixel16bit<BEHIND_PIXEL_SUM> belt_behind(&htim15, TIM_CHANNEL_1);
 Neopixel32bit<FRONT_PIXEL_SUM> localization_front(&htim2, TIM_CHANNEL_4);
+Neopixel32bit<UP_PIXEL_SUM> auto_communication_up(&htim2, TIM_CHANNEL_2);
 
 void setup()
 {
