@@ -93,6 +93,7 @@ int main(void)
   MX_FDCAN1_Init();
   MX_TIM2_Init();
   MX_TIM15_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
     setup();
   /* USER CODE END 2 */
