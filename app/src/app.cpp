@@ -54,11 +54,6 @@ Neopixel32bit<UP_PIXEL_SUM> auto_communication_up(&htim2, TIM_CHANNEL_2);
 bool communication = false;
 volatile bool timer_100hz_triggered;
 
-void setup()
-{
-    fdcan1_driver.init();
-}
-
 bool is_in_range(float value, float min, float max)
 {
     return value >= min && value <= max;
@@ -161,17 +156,49 @@ void control_led_communication(LEDInformation& led_info)
     } else {
         communication = false;
     }
+    if (communication) {
+        if (led_info.navigation_status == robot_config::NavigationStatus::Stanby) {
+            communication_led.gradually_show_fill(0, 0, 180, 10);  // blue gradually
+        } else if (led_info.navigation_status == robot_config::NavigationStatus::Ready) {
+            communication_led.fill_show(0, 0, 180);  // blue
+        } else if (led_info.navigation_status == robot_config::NavigationStatus::Tracking) {
+            communication_led.converge_and_diverge(0, 0, 180);
+        } else if (led_info.navigation_status == robot_config::NavigationStatus::Moving) {
+            communication_led.converge_and_diverge(0, 180, 0);
+        } else if (led_info.navigation_status == robot_config::NavigationStatus::Goal) {
+            communication_led.fill_show(0, 180, 0);
+        } else if (led_info.navigation_status == robot_config::NavigationStatus::Fail) {
+            communication_led.fill_show(255, 0, 0);
+        }
+    }
+
+    auto_communication_up.set_pixels(communication_led.to_pixels());
 }
 
-void timer_100hz_process() {}
+void timer_100hz_process()
+{
+    if (!communication) {
+        communication_led.gradually_show_fill(255, 0, 0, 5);
+    }
+}
+
+void setup()
+{
+    fdcan1_driver.init();
+}
 
 void loop()
 {
     if (led_server_info.get_information(led_info)) {
         control_led_belt(led_info);
         control_led_localization(led_info);
-
+        control_led_communication(led_info);
         HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
+    }
+
+    if (timer_100hz_triggered) {
+        timer_100hz_process();
+        timer_100hz_triggered = false;
     }
 }
 
