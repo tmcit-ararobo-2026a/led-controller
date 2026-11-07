@@ -3,6 +3,7 @@
 /* ---app--- */
 // ledの範囲と色の設定をするやつ
 #include "app/belt_led_set.hpp"
+#include "app/communication_led_set.hpp"
 #include "app/led_blend.hpp"
 #include "app/localization_led_set.hpp"
 // 構造体共通設定
@@ -19,6 +20,7 @@
 constexpr uint16_t BEHIND_PIXEL_SUM   = 75;
 constexpr uint16_t BEHIND_PIXEL_BREAK = 37;
 constexpr uint16_t FRONT_PIXEL_SUM    = 115;
+constexpr uint16_t TOP_PIXEL_SUM      = 28;
 
 constexpr float RANGE_MIN = -127.0f;
 constexpr float RANGE_MAX = 127.0f;
@@ -27,6 +29,7 @@ LEDIndexConversion belt_conversion(2.0f, 8.0f, BEHIND_PIXEL_SUM - BEHIND_PIXEL_B
 LEDIndexConversion localization_conversion(RANGE_MIN, RANGE_MAX, FRONT_PIXEL_SUM);
 
 BeltLEDSet<BEHIND_PIXEL_SUM> belt_power(belt_conversion, BEHIND_PIXEL_BREAK);
+CommunicationLEDSet<TOP_PIXEL_SUM> communication_led(10, 100000);
 
 // ターゲットごとに個別のLocalizationLEDSetを用意
 LocalizationLEDSet<FRONT_PIXEL_SUM> localization_flag(localization_conversion);
@@ -45,11 +48,11 @@ gn10_can::devices::LEDServer<LEDInformation> led_server_info(fdcan1_bus, 2);
 // neopixel
 Neopixel16bit<BEHIND_PIXEL_SUM> belt_behind(&htim15, TIM_CHANNEL_1);
 Neopixel32bit<FRONT_PIXEL_SUM> localization_front(&htim2, TIM_CHANNEL_4);
+Neopixel32bit<TOP_PIXEL_SUM> auto_communication_up(&htim2, TIM_CHANNEL_2);
 
-void setup()
-{
-    fdcan1_driver.init();
-}
+// callback flag
+bool communication = false;
+volatile bool timer_100hz_triggered;
 
 bool is_in_range(float value, float min, float max)
 {
@@ -146,13 +149,56 @@ void control_led_belt(LEDInformation& led_info)
     belt_behind.set_pixels(belt_power.to_pixels());
 }
 
+void control_led_communication(LEDInformation& led_info)
+{
+    if (led_info.communication_status) {
+        communication = true;
+    } else {
+        communication = false;
+    }
+    if (communication) {
+        if (led_info.navigation_status == robot_config::NavigationStatus::Stanby) {
+            communication_led.gradually_show_fill(0, 0, 180, 10);  // blue gradually
+        } else if (led_info.navigation_status == robot_config::NavigationStatus::Ready) {
+            communication_led.fill_show(0, 0, 180);  // blue
+        } else if (led_info.navigation_status == robot_config::NavigationStatus::Tracking) {
+            communication_led.converge_and_diverge(0, 0, 180);
+        } else if (led_info.navigation_status == robot_config::NavigationStatus::Moving) {
+            communication_led.converge_and_diverge(0, 180, 0);
+        } else if (led_info.navigation_status == robot_config::NavigationStatus::Goal) {
+            communication_led.fill_show(0, 180, 0);
+        } else if (led_info.navigation_status == robot_config::NavigationStatus::Fail) {
+            communication_led.fill_show(255, 0, 0);
+        }
+    }
+
+    auto_communication_up.set_pixels(communication_led.to_pixels());
+}
+
+void timer_100hz_process()
+{
+    if (!communication) {
+        communication_led.gradually_show_fill(255, 0, 0, 5);
+    }
+}
+
+void setup()
+{
+    fdcan1_driver.init();
+}
+
 void loop()
 {
     if (led_server_info.get_information(led_info)) {
         control_led_belt(led_info);
         control_led_localization(led_info);
-
+        control_led_communication(led_info);
         HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
+    }
+
+    if (timer_100hz_triggered) {
+        timer_100hz_process();
+        timer_100hz_triggered = false;
     }
 }
 
@@ -169,5 +215,13 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo1ITs)
     (void)RxFifo1ITs;
     HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
     if (process_fdcan_fifo(hfdcan, &hfdcan1, fdcan1_bus, FDCAN_RX_FIFO1)) return;
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+{
+    // 100Hz
+    if (htim->Instance == TIM7) {
+        timer_100hz_triggered = true;
+    }
 }
 }
