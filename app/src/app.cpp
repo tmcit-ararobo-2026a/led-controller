@@ -20,7 +20,7 @@
 constexpr uint16_t BEHIND_PIXEL_SUM   = 75;
 constexpr uint16_t BEHIND_PIXEL_BREAK = 37;
 constexpr uint16_t FRONT_PIXEL_SUM    = 115;
-constexpr uint16_t UP_PIXEL_SUM       = 28;
+constexpr uint16_t TOP_PIXEL_SUM      = 28;
 
 constexpr float RANGE_MIN = -127.0f;
 constexpr float RANGE_MAX = 127.0f;
@@ -29,7 +29,7 @@ LEDIndexConversion belt_conversion(2.0f, 8.0f, BEHIND_PIXEL_SUM - BEHIND_PIXEL_B
 LEDIndexConversion localization_conversion(RANGE_MIN, RANGE_MAX, FRONT_PIXEL_SUM);
 
 BeltLEDSet<BEHIND_PIXEL_SUM> belt_power(belt_conversion, BEHIND_PIXEL_BREAK);
-CommunicationLEDSet<UP_PIXEL_SUM> communication_led(10, 100000);
+CommunicationLEDSet<TOP_PIXEL_SUM> communication_led(10, 100000);
 
 // ターゲットごとに個別のLocalizationLEDSetを用意
 LocalizationLEDSet<FRONT_PIXEL_SUM> localization_flag(localization_conversion);
@@ -48,7 +48,7 @@ gn10_can::devices::LEDServer<LEDInformation> led_server_info(fdcan1_bus, 2);
 // neopixel
 Neopixel16bit<BEHIND_PIXEL_SUM> belt_behind(&htim15, TIM_CHANNEL_1);
 Neopixel32bit<FRONT_PIXEL_SUM> localization_front(&htim2, TIM_CHANNEL_4);
-Neopixel32bit<UP_PIXEL_SUM> auto_communication_up(&htim2, TIM_CHANNEL_2);
+Neopixel32bit<TOP_PIXEL_SUM> auto_communication_up(&htim2, TIM_CHANNEL_2);
 
 // callback flag
 bool communication = false;
