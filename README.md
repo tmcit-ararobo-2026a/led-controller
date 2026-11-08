@@ -1,57 +1,59 @@
 # LED Controller
 
-Neopixel WS2813 Controller for NHK Robocon 2026.
-STM32 G4 controls RGB LED using DMA.
+Neopixel WS2813 Controller for NHK Robocon 2026. 
+An STM32G4 controls the RGB LEDs using DMA.
 
-# Types of LED Strips
+## Types of LED Strips
 
-Our robot has three LED strips.
-Show pixels number are variable.
+Our robot is equipped with three LED strips. The number of pixels on each strip is configurable:
 
-The front LED strip has 115 pixels.  
-The front LEDs indicate our robot's localization status.
+- **Front LED Strip (115 pixels):** Indicates the robot's localization status.
+- **Rear LED Strip (75 pixels):** Indicates the belt drive power.
+- **Front-Top LED Strip (28 pixels):** Indicates the robot's communication and autopilot status.
 
-The behind LED strip has 75 pixels.  
-The behind LEDs indicate the belt drive power.
-
-The front-top LED strip has 28 pixels.  
-The front-top LEDs indicate our robot's communication status.
+---
 
 ## Front LED
-The position of an object is indicated using LED, based on robot's localization information.  
-The LED lights up when the object settles within the range of   ``RANGE_MIN`` to ``RANGE_MAX``.  
-And LED color is blended.
 
-| object | LED color| LED show type | 
-| :-: | :-: | :-: |
-|flag|sky blue| all light up|
-|bucket.1|green|all light up|
-|bucket.2 & 3|red|all light up|
-|move bucket|yellow|all light up|
-|out of range|skyblue and red(15 edge pieces)|all light up|
+Indicates the object's position based on the robot's localization data.  
+The LEDs light up when the object falls within the range between `RANGE_MIN` and `RANGE_MAX`. Colors are dynamically blended based on the detected target.
 
-## Behind LED 
-This LEDs show power of belt drive.  
-Please check ``app/include/app/belt_led_set.hpp``.  
-The file will show you how many LEDs light up and at what intensity.  
-Here,we will tell you two LEDs type.
-|belt status|LED color |
-| :-: | :-: |
-|shot ok | green | 
-|shot not ok | red | 
+| Object | LED Color | Lighting Effect |
+| :--- | :--- | :--- |
+| Flag | Sky Blue | Solid (All LEDs) |
+| Bucket 1 | Green | Solid (All LEDs) |
+| Bucket 2 & 3 | Red | Solid (All LEDs) |
+| Move Bucket | Yellow | Solid (All LEDs) |
+| Out of Range | Sky Blue & Red | Solid (15 edge LEDs per color) |
 
-The number of showed LEDs is variable.
+---
 
-## Front-Top
-This LEDs show robot's communication status.  
-The communication status indicate regarding autopilot and communication with the controller.
-| communication status | LED color | LED show type | 
-| :-: | :-: | :-: |
-| communication is not ok (with controller) | red | all led gradually brighten |
-| autopilot standby | blue | all led gradually brighten |
-| autopilot ready | blue | all light up |
-| autopilot Tracking | green | converge_and_diverge | 
-| autopilot success | green | all light up | 
-| autopilot fail | red | all light up | 
+## Rear LED
 
+Displays the current power output of the belt drive.  
+For implementation details regarding LED count and brightness scaling, please refer to:
+`app/include/app/belt_led_set.hpp`
 
+### Status Indicators
+
+| Belt Status | LED Color |
+| :--- | :--- |
+| **Shot OK** | Green |
+| **Shot NOT OK** | Red |
+
+*Note: The number of active LEDs scales dynamically with the belt power.*
+
+---
+
+## Front-Top LED
+
+Indicates the robot's communication status with the controller and the current autopilot phase.
+
+| Communication / Autopilot Status | LED Color | Lighting Effect |
+| :--- | :--- | :--- |
+| **Controller Comm Disconnected** | Red | Fade / Breathing |
+| **Autopilot Standby** | Blue | Fade / Breathing |
+| **Autopilot Ready** | Blue | Solid (All LEDs) |
+| **Autopilot Tracking** | Green | Converge & Diverge |
+| **Autopilot Success** | Green | Solid (All LEDs) |
+| **Autopilot Fail** | Red | Solid (All LEDs) |
