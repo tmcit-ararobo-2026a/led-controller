@@ -1,4 +1,5 @@
-# LED コントローラー
+# led-controller
+[English](./README.md)
 
 NHKロボコン 2026 用 Neopixel WS2813 コントローラーです。  
 STM32G4を使用し、DMA経由でRGB LEDの制御を行います。
