@@ -1,5 +1,7 @@
 # LED Controller
 
+[Japanese/日本語](./README_JP.md)
+
 Neopixel WS2813 controller for NHK Robocon 2026.  
 An STM32G4 drives the RGB LEDs via DMA.
 
