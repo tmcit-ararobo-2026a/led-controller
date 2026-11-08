@@ -22,13 +22,13 @@ The position of an object is indicated using LED, based on robot's localization 
 The LED lights up when the object settles within the range of   ``RANGE_MIN`` to ``RANGE_MAX``.  
 And LED color is blended.
 
-| object | LED color| status | 
+| object | LED color| LED show type | 
 | :-: | :-: | :-: |
-|flag|sky blue|fill|
-|bucket.1|green|fill|
-|bucket.2 & 3|red|fill|
-|move bucket|yellow|fill|
-|out of range|skyblue and red(15 edge pieces)|fill|
+|flag|sky blue| all light up|
+|bucket.1|green|all light up|
+|bucket.2 & 3|red|all light up|
+|move bucket|yellow|all light up|
+|out of range|skyblue and red(15 edge pieces)|all light up|
 
 ## Behind LED 
 This LEDs show power of belt drive.  
@@ -40,5 +40,18 @@ Here,we will tell you two LEDs type.
 |shot ok | green | 
 |shot not ok | red | 
 
+The number of showed LEDs is variable.
+
 ## Front-Top
+This LEDs show robot's communication status.  
+The communication status indicate regarding autopilot and communication with the controller.
+| communication status | LED color | LED show type | 
+| :-: | :-: | :-: |
+| communication is not ok (with controller) | red | all led gradually brighten |
+| autopilot standby | blue | all led gradually brighten |
+| autopilot ready | blue | all light up |
+| autopilot Tracking | green | converge_and_diverge | 
+| autopilot success | green | all light up | 
+| autopilot fail | red | all light up | 
+
 
