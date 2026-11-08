@@ -17,19 +17,19 @@
 #include "gn10_stm32_fdcan_driver/fdcan_driver.hpp"
 
 // 定数
-constexpr uint16_t BEHIND_PIXEL_SUM   = 75;
-constexpr uint16_t BEHIND_PIXEL_BREAK = 37;
-constexpr uint16_t FRONT_PIXEL_SUM    = 115;
-constexpr uint16_t TOP_PIXEL_SUM      = 28;
+constexpr uint16_t REAR_PIXEL_SUM      = 75;
+constexpr uint16_t REAR_PIXEL_BREAK    = 37;
+constexpr uint16_t FRONT_PIXEL_SUM     = 115;
+constexpr uint16_t FRONT_TOP_PIXEL_SUM = 28;
 
 constexpr float RANGE_MIN = -127.0f;
 constexpr float RANGE_MAX = 127.0f;
 
-LEDIndexConversion belt_conversion(2.0f, 8.0f, BEHIND_PIXEL_SUM - BEHIND_PIXEL_BREAK);
+LEDIndexConversion belt_conversion(2.0f, 8.0f, REAR_PIXEL_SUM - REAR_PIXEL_BREAK);
 LEDIndexConversion localization_conversion(RANGE_MIN, RANGE_MAX, FRONT_PIXEL_SUM);
 
-BeltLEDSet<BEHIND_PIXEL_SUM> belt_power(belt_conversion, BEHIND_PIXEL_BREAK);
-CommunicationLEDSet<TOP_PIXEL_SUM> communication_led(10, 100000);
+BeltLEDSet<REAR_PIXEL_SUM> belt_power(belt_conversion, REAR_PIXEL_BREAK);
+CommunicationLEDSet<FRONT_TOP_PIXEL_SUM> communication_led(10, 100000);
 
 // ターゲットごとに個別のLocalizationLEDSetを用意
 LocalizationLEDSet<FRONT_PIXEL_SUM> localization_flag(localization_conversion);
@@ -46,12 +46,12 @@ gn10_can::FDCANBus fdcan1_bus(fdcan1_driver);
 gn10_can::devices::LEDServer<LEDInformation> led_server_info(fdcan1_bus, 2);
 
 // neopixel
-Neopixel16bit<BEHIND_PIXEL_SUM> belt_behind(&htim15, TIM_CHANNEL_1);
+Neopixel16bit<REAR_PIXEL_SUM> belt_behind(&htim15, TIM_CHANNEL_1);
 Neopixel32bit<FRONT_PIXEL_SUM> localization_front(&htim2, TIM_CHANNEL_4);
-Neopixel32bit<TOP_PIXEL_SUM> auto_communication_up(&htim2, TIM_CHANNEL_2);
+Neopixel32bit<FRONT_TOP_PIXEL_SUM> auto_communication_up(&htim2, TIM_CHANNEL_2);
 
 // callback flag
-bool communication = false;
+volatile bool communication = false;
 volatile bool timer_100hz_triggered;
 
 bool is_in_range(float value, float min, float max)
